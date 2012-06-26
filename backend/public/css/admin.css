@@ -30,10 +30,66 @@ textarea {
   width: 90%;
 }
 
+
+/* Login page */
+#login {
+  background: #EEE;
+  border: 1px solid #CCC;
+  margin: 0 auto;
+  padding: 30px;
+  width: 240px;
+}
 #error {
   background: #FDD;
   border: 1px solid #F00;
   color: #A00;
-  max-width: 400px;
+  margin-bottom: 20px;
   padding: 10px;
+}
+#login input, #login label {
+  display: block;
+}
+
+
+/* header */
+nav ul {
+  margin: 0;
+  padding: 0;
+}
+nav ul li {
+  float: left;
+  list-style: none;
+  width: 100px;
+}
+nav ul li a {
+  background: #EEE;
+  border: 1px solid #CCC;
+  display: block;
+  padding: 5px;
+  text-align: center;
+  text-decoration: none;
+}
+nav ul li a:hover {
+  background: #FEA;
+}
+
+#tab-menu {
+  float: left;
+  height: 50px;
+}
+#tab-menu li {
+  margin-right: 5px;
+}
+
+#user-menu {
+  float: right;
+  height: 50px;
+}
+#user-menu li {
+  margin-left: 5px;
+}
+
+
+.clear {
+  clear: both;
 }
