@@ -1,3 +1,4 @@
 _backup
 _workfiles
 backend/_db.php
+*.swp
