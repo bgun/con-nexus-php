@@ -29,3 +29,11 @@ textarea {
   display: block;
   width: 90%;
 }
+
+#error {
+  background: #FDD;
+  border: 1px solid #F00;
+  color: #A00;
+  max-width: 400px;
+  padding: 10px;
+}

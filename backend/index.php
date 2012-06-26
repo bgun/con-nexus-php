@@ -2,17 +2,37 @@
 require_once("./lib/limonade.php");
 
 function before($route) {
-  header("X-LIM-route-function: ".$route['callback']);
-  layout('default_layout.php');
+  //header("X-LIM-route-function: ".$route['callback']);
+  //layout('default_layout.php');
 }
 
-dispatch('/', 'hello_world');
-function hello_world() {
-  $greeting = array(
-    "greeting"=>"Hello, Con-Nexus!"
-  );
-  set('greeting',$greeting);
-	return render();
+dispatch('/',      'login');
+dispatch('/login/:error', 'login');
+function login() {
+  if(params('error')) {
+    set('error',params('error'));
+  }
+  return render('login.html.php',null);
+}
+
+dispatch_post('/login','login_post');
+function login_post() {
+	require_once("./_db.php");
+  $link = mysql_connect($dbserver, $dbuser, $dbpass) or die('Cannot connect to the DB');
+	mysql_select_db($dbname,$link) or die('Cannot select the DB: '.mysql_error());
+
+  if(isset($_POST['username']) && isset($_POST['password'])) {
+    $u = $_POST['username'];
+    $p = md5($_POST['password']);
+    $query = 'SELECT UserID FROM users WHERE username = $u AND $password = $p';
+    $data = mysql_query($query, $link);
+    if(mysql_num_rows($data) === 1) {
+    } else {
+      redirect_to('/login/autherror');
+    }
+  } else {
+    redirect_to('/login/error');
+  }
 }
 
 dispatch('/feedback', 'feedback');
@@ -80,10 +100,11 @@ function app() {
 
   $method   = $_SERVER['REQUEST_METHOD'];
 
-  // TODO: ability to return a single convention
-  if($cid > 0 && $action === null) {
-    $action = "list";
+  if($app === "admin" && $cid === null) {
+    die("yay");
   }
+
+  if(!is_numeric($cid) || $cid < 0) die("Invalid ID. Error 0");
 
 	switch($action) {
 		case 'list':
@@ -94,7 +115,7 @@ function app() {
 			$key = "ConventionID";
 			break;
     case 'event':
- 			if($cid < 0) die("Must provide a convention ID");
+ 			if(!is_numeric($id) || $id < 0) die("Invalid ID. Error 1");
       $query  = "SELECT E.EventID, E.Title, E.StartDate, E.EndDate, E.Description, E.Location";
       $query .= ",GROUP_CONCAT(LEG.GuestID) AS GuestList";
       $query .= " FROM events E";
@@ -105,7 +126,6 @@ function app() {
       $key = "EventID";
      break;
 		case 'events':
-			if($cid < 0) die("Must provide a convention ID");
 			$query  = "SELECT E.EventID, E.Title, E.StartDate, E.EndDate, E.Description, E.Location";
 			$query .= ",GROUP_CONCAT(LEG.GuestID) AS GuestList";
 			$query .= " FROM events E";
@@ -115,8 +135,21 @@ function app() {
 			$query .= " GROUP BY EventID";
 			$key = "EventID";
 			break;
+		case 'guest':
+ 			if(!is_numeric($id) || $id < 0) die("Invalid ID. Error 2");
+			$query  = "SELECT DISTINCT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website, G.GuestID, LC.ConventionRole, LC.ConventionID";
+			$query .= ",GROUP_CONCAT(DISTINCT LEG.EventID) AS EventList";
+			$query .= " FROM guests G";
+			$query .= " LEFT JOIN linkeventsguests L ON G.GuestID = L.GuestID";
+			$query .= " LEFT JOIN events E ON E.EventID = L.EventID";
+			$query .= " LEFT JOIN conventions C ON C.ConventionID = E.ConventionID";
+			$query .= " LEFT JOIN linkconventionsguests LC ON LC.ConventionID = C.ConventionID";
+			$query .= " LEFT JOIN linkeventsguests LEG ON G.GuestID = LEG.GuestID";
+			$query .= " WHERE C.ConventionID = $cid AND E.EventID = $id";
+			$query .= " GROUP BY GuestID";
+			$key = "GuestID";
+			break;
 		case 'guests':
-			if($cid < 0) die("Must provide a convention ID");
 			$query  = "SELECT DISTINCT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website, G.GuestID, LC.ConventionRole, LC.ConventionID";
 			$query .= ",GROUP_CONCAT(DISTINCT LEG.EventID) AS EventList";
 			$query .= " FROM guests G";
@@ -182,7 +215,7 @@ function app() {
   }
   set('data',$output); // data for table grid
 
-  // find our convention
+  // get convention data
   $query  = "SELECT ConventionID, Name, StartDate, UNIX_TIMESTAMP(StartDate) AS StartDateUT";
   $query .= ",EndDate, UNIX_TIMESTAMP(EndDate) AS EndDateUT, Description, Location, Website, Twitter";
   $query .= ",UNIX_TIMESTAMP(UpdateDate) AS UpdateTimestamp";
@@ -195,6 +228,7 @@ function app() {
   }
   set('convention',$con_data);
 
+  // render template for the action
   return render($action.'.html.php');
   mysql_close($link);
 }

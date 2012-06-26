@@ -10,12 +10,13 @@
 </head>
 <body>
 
-<header>
+<header id="header">
+  <h1>Con-Nexus Admin</h1>
   <h2><?php echo $convention["Name"]; ?></h2>
   <nav id="tab-menu">
     <ul>
-      <li><a href="/backend/admin/<?php echo $convention["ConventionID"]; ?>/events">Events</a></li>
-      <li><a href="/backend/admin/<?php echo $convention["ConventionID"]; ?>/guests">Guests</a></li>
+      <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'events'); ?>">Events</a></li>
+      <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'guests'); ?>">Guests</a></li>
     </ul>
   </nav>
 </header>
