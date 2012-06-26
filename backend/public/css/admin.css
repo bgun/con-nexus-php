@@ -1,0 +1,31 @@
+body {
+  font-family: "Lucida Sans Unicode","Lucida Grande",sans-serif;
+  font-size: 12px;
+  padding: 20px 60px;
+}
+
+table {
+  border: 1px solid #CCC;
+  border-collapse: collapse;
+}
+tr {
+  color: #444;
+}
+tr:hover {
+  background: #FEA;
+  color: #000;
+  cursor: pointer;
+}
+tr.separator {
+  background: #FFF;
+  border: none;
+  height: 15px;
+}
+td {
+  border: 1px solid #CCC;
+  padding: 4px;
+}
+textarea {
+  display: block;
+  width: 90%;
+}

@@ -1,0 +1,229 @@
+html, body {
+	background: #454844;
+}
+
+a, img {
+	border: 0;
+}
+
+div.ui-body-c {
+	background: url("../images/cons/jcon2012-bg.jpg");
+	background-color: #454844;
+	background-size: 100% auto;
+}
+div.ui-content p,
+div.ui-content h1,
+div.ui-content h2,
+div.ui-content h3,
+div.ui-content h5 {
+	color: white;
+	text-shadow: 0 1px 0 black;
+	padding: 0 0.5em
+}
+
+#dashboard .convention-header {
+	display: block;
+	max-width: 550px;
+	margin: 0 auto;
+	width: 100%;
+}
+#dashboard .convention-header li {
+	background: none;
+	background-image: none;
+	border: 0px;
+}
+#dashboard .convention-header li a {
+	color: white;
+	padding-right: 30px;
+	text-shadow: 0 1px 0 black;
+}
+#dashboard .convention-header li a h3 {
+	margin: 0;
+}
+#dashboard .convention-header small {
+	font-size: 0.8em;
+	font-weight: normal;
+}
+
+img.con-logo {
+	display: block;
+	margin: 1em auto;
+	width: 70%;
+}
+
+#dashboard .control-main {
+	max-width: 550px;
+	margin: 0 auto;
+	opacity: 0.8;
+}
+#dashboard .control-main .ui-btn-inner {
+	padding: 6px;
+}
+
+#dashboard .control-main a {
+	margin: 0;
+}
+#dashboard .control-main div.btn-schedule a { border-radius: 10px 0 0 0; }
+#dashboard .control-main div.btn-guests a 	{ border-radius: 0; }
+#dashboard .control-main div.btn-feedback a { border-radius: 0 10px 0 0; }
+
+#dashboard .control-main div.btn-map a 		{ border-radius: 0 0 0 10px; }
+#dashboard .control-main div.btn-todo a 	{ border-radius: 0; }
+#dashboard .control-main div.btn-twitter a 	{ border-radius: 0 0 10px 0; }
+
+#dashboard .control-main img {
+	display: block;
+	margin: 0 auto;
+	width: 100%;
+}
+#dashboard .control-main h4 {
+	margin: 0.1em 0;
+}
+#dashboard .about-link {
+	margin: 1em auto;
+	max-width: 550px;
+	width: 100%;
+}
+
+
+#feedback textarea {
+	height: 7em;
+}
+
+
+#twitter h3 {
+	text-align: center;
+}
+#twitter ul.tweet_list {
+	background: #FFF;
+	border-radius: 5px;
+	font-size: 0.9em;
+	list-style: none;
+	margin: 0 auto;
+	max-width: 600px;
+	padding: 0;
+}
+#twitter ul.tweet_list li {
+	border-top: 1px solid #EEE;
+	border-bottom: 1px solid #CCC;
+	clear: both;
+	display: block;
+	font-size: 0.9em;
+	list-style: none;
+	margin: 0;
+	padding: 15px;
+}
+#twitter ul.tweet_list li.tweet_first {
+	border-top: 0px;
+}
+#twitter ul.tweet_list li.tweet_last {
+	border-bottom: 0px;
+}
+#twitter a.tweet_user {
+	color: #444;
+	display: block;
+	font-size: 1.1em;
+	font-weight: bold;
+	margin-left: 60px;
+	text-decoration: none;
+}
+#twitter a.tweet_avatar {
+	display: block;
+	float: left;
+	height: 48px;
+	padding-bottom: 6px;
+	width: 48px;
+}
+#twitter li span.tweet_text {
+	display: block;
+	margin-left: 54px;
+}
+#twitter li span.tweet_time a {
+	color: #777;
+	display: block;
+	font-size: 0.9em;
+	font-style: italic;
+	margin-left: 54px;
+}
+
+.ui-page .ui-header a.schedule-nav {
+	margin-top: 4em;
+}
+
+a.ui-btn-up-d,
+a.ui-btn-up-d:active,
+a.ui-btn-up-d:visited,
+a.ui-btn-up-d:hover {
+	color: #FFF;
+	text-decoration: none;
+}
+
+.ui-navbar a{
+	font-size: 0.7em;
+	font-weight: normal;
+}
+
+span.role-vendor {
+	color: #0A0;
+	font-size: 0.9em;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+span.role-guestofhonor,
+span.role-toastmaster {
+	color: #CA0;
+	font-size: 0.9em;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+span.role-specialguest,
+span.role-guestperformance {
+	color: #B0A;
+	font-size: 0.9em;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+#map {
+}
+#map-container {
+	overflow: auto;
+	width: 100%;
+}
+#map-image {
+	display: block;
+	max-width: none !important;
+	width: 1200px;
+}
+#map-controls {
+	background: #343934;
+	border-radius: 0 5px 5px 0;
+	height: 100px;
+	position: fixed;
+		top: 80px;
+	width: 50px;
+	z-index: 500;
+}
+#map-zoom-out {
+	background-image: url('../images/icon-map-zoom-out.png');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 80% 80%;
+	display: block;
+	height: 50px;
+	width: 50px;
+}
+#map-zoom-in {
+	background-image: url('../images/icon-map-zoom-in.png');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 80% 80%;
+	display: block;
+	height: 50px;
+	width: 50px;
+}
+ 
+.clear { clear: both; }
+.hide { display: none; }
+.show { display: block; }
+
