@@ -1,6 +1,10 @@
 <?php
 require_once("./lib/limonade.php");
 
+function configure() {
+  option('base_uri','/');
+}
+
 function before($route) {
   //header("X-LIM-route-function: ".$route['callback']);
   layout('default_layout.php');
@@ -11,8 +15,17 @@ dispatch('/login/:error', 'login');
 dispatch('/logout',       'login');
 function login() {
   session_destroy();
-  if(params('error')) {
-    set('error',params('error'));
+  switch(params('error')) {
+    case 'autherror':
+      $error_message = "Invalid login.";
+      break;
+    case 'error':
+      $error_message = "Please enter both a username and a password.";
+    default:
+      $error_message = false;
+  }
+  if($error_message) {
+    set('error', $error_message);
   }
   return render('login.html.php',null);
 }
@@ -20,8 +33,8 @@ function login() {
 dispatch_post('/login','login_post');
 function login_post() {
   require_once("./model.php"); 
-  require_once("./_db.php");
   $model = new Model();
+  require_once("./_db.php");
   $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
 
   if(!empty($_POST['username']) && !empty($_POST['password'])) {
@@ -31,9 +44,11 @@ function login_post() {
     $user = $model->authenticateUser($u,$p);
     if($user) { // authenticated!
       session_start();
-      $_SESSION['id'] = $user['UserID'];
+      $_SESSION['id']    = $user['UserID'];
+      $_SESSION['name']  = $user['UserName'];
+      $_SESSION['email'] = $user['UserEmail'];
       set('user',$user);
-      redirect_to('/admin');
+      redirect_to('/admin/home');
     } else {
       redirect_to('/login/autherror');
     }
@@ -92,13 +107,12 @@ function feedback() {
 dispatch('/api/:con/:action/:id', 'api');
 function api() {
   require_once("./model.php");
-  require_once("./_db.php");
   $model = new Model();
+  require_once("./_db.php");
   $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
 
 	// jsonp callback
-	$callback = isset($_GET['callback']) ? $_GET['callback'] : false
-;
+	$callback = isset($_GET['callback']) ? $_GET['callback'] : false;
 	$action   = params('action');
   $cid      = params('con');
   $id       = params('id');
@@ -126,7 +140,6 @@ function api() {
 			die("Invalid action.");
 			break;
 	}
-  $model->closeDB();
 
   // Construct final object
   $count = count($data);
@@ -155,12 +168,46 @@ function api() {
     header('Content-type: application/json');
     echo $json_resp;
   }
+
   // Cleanup
+  $model->closeDB();
   die();
 } 
 
-dispatch('/admin/:con/:action/:id', 'admin');
-function admin() {
+dispatch('/admin/home', 'adminHome');
+function adminHome() {
+
+  // Authenticate
+  if(!isset($_SESSION['id'])) {
+    die("Access denied.");
+  } else {
+    require_once("./model.php");
+    $model = new Model();
+    require_once("./_db.php");
+    $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
+
+    $uid = $_SESSION['id'];
+    $cons = $model->getConventions();
+    $cons_for_user = $model->getConventionsAccessListForUser($uid);
+
+    $output = array();
+    foreach($cons as $c) {
+      if(in_array($c['ConventionID'], $cons_for_user)) {
+        array_push($output,$c);
+      }
+    }
+
+    set('data', $output);
+    set('user', $_SESSION);
+
+    $model->closeDB();
+
+    return render('home.html.php');
+  } 
+}
+
+dispatch('/admin/:con/:action/:id', 'adminAction');
+function adminAction() {
 
   // Authenticate
   if(!isset($_SESSION['id'])) {
@@ -168,27 +215,23 @@ function admin() {
   } else {
 
     require_once("./model.php");
-    require_once("./_db.php");
     $model = new Model();
+    require_once("./_db.php");
     $model->connectDB($dbserver, $dbname, $dbuser, $dbpass); 
 
     $action = params('action');
     $cid    = params('con');
     $id     = params('id');
 
-    if($cid === 'list') {
-      $action = 'conventions';
-    }
-
     switch($action) {
-      case 'conventions':
-        $data = $model->getConventions();
-        break;
       case 'event':
         $data = $model->getEvent($cid, $id);
         break;
       case 'events':
         $data = $model->getEvents($cid);
+        foreach($data as $d) {
+          $d["Guests"] = $model->getGuestsForEvent($d["EventID"]);
+        }
         break;
       case 'guest':
         $data = $model->getGuest($cid, $id);
@@ -200,13 +243,13 @@ function admin() {
         die("Invalid action.");
         break;
     }
-    $model->closeDB();
 
     set('data',$data); // data for table grid
-    set('convention',$model->getConvention($cid));
+    set('convention', $model->getConvention($cid));
     set('user', $_SESSION);
 
-    // render template for the action
+    $model->closeDB();
+
     return render($action.'.html.php');
   }
 }

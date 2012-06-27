@@ -1,12 +1,24 @@
 body {
   font-family: "Lucida Sans Unicode","Lucida Grande",sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   padding: 20px 60px;
+}
+
+#header {
+  border-bottom: 2px solid #CCC;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 table {
   border: 1px solid #CCC;
   border-collapse: collapse;
+}
+th {
+  background: #333;
+  border: 1px solid #666;
+  color: #FFF;
+  line-height: 30px;
 }
 tr {
   color: #444;
@@ -14,7 +26,6 @@ tr {
 tr:hover {
   background: #FEA;
   color: #000;
-  cursor: pointer;
 }
 tr.separator {
   background: #FFF;
@@ -58,14 +69,18 @@ nav ul {
 }
 nav ul li {
   float: left;
+  line-height: 30px;
   list-style: none;
   width: 100px;
+}
+nav ul li .username {
+  font-weight: bold;
 }
 nav ul li a {
   background: #EEE;
   border: 1px solid #CCC;
   display: block;
-  padding: 5px;
+  padding: 0 5px;
   text-align: center;
   text-decoration: none;
 }
@@ -75,7 +90,6 @@ nav ul li a:hover {
 
 #tab-menu {
   float: left;
-  height: 50px;
 }
 #tab-menu li {
   margin-right: 5px;
@@ -83,7 +97,6 @@ nav ul li a:hover {
 
 #user-menu {
   float: right;
-  height: 50px;
 }
 #user-menu li {
   margin-left: 5px;

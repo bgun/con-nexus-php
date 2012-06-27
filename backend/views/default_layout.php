@@ -12,21 +12,25 @@
 
 <header id="header">
   <h1>Con-Nexus Admin</h1>
+  <?php if(isset($convention)): ?>
   <h2><?php echo $convention["Name"]; ?></h2>
   <nav id="tab-menu">
     <ul>
+      <li><a href="<?php echo url_for('admin', 'home'); ?>">Admin Home</a></li>
       <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'events'); ?>">Events</a></li>
       <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'guests'); ?>">Guests</a></li>
     </ul>
   </nav>
+  <?php endif; ?>
   <nav id="user-menu">
     <ul>
+      <li>User: <span class="username"><?php echo $user['name']; ?></span></li>
       <li><a href="<?php echo url_for('logout'); ?>">Logout</a></li>
     </ul>
   </nav>
+  <div class="clear"></div>
 </header>
 
-<div class="clear"></div>
 
 <?php echo $content; ?>
 

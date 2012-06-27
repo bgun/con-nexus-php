@@ -1,5 +1,15 @@
 <table id="guests-list">
+<thead>
+  <tr>
+    <th>Guest First Name</th>
+    <th>Guest Last Name</th>
+    <th>Guest Bio</th>
+    <th>Guest Website</th>
+    <th>Action</th>
+  </tr>
+</head>
 <tbody>
+  <tr class="separator"></tr>
   <tr>
     <td><input type="text" class="first-name" value="First Name"></td>
     <td><input type="text" class="last-name"  value="Last Name"></td>
