@@ -1,48 +1,122 @@
 body {
-  font-family: "Lucida Sans Unicode","Lucida Grande",sans-serif;
+  font-family: "Helvetica", sans-serif;
   font-size: 13px;
-  padding: 20px 60px;
 }
 
 #header {
-  border-bottom: 2px solid #CCC;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
+  border-bottom: 1px dotted #AAA;
+  margin: 10px 60px 0 60px;
+  padding-bottom: 20px;
 }
 
-table {
+#page {
+  padding: 20px 60px;
+}
+
+
+/* HTML defaults */
+
+h1 {
+}
+h2 {
+}
+h3 {
+  border-bottom: 1px dotted #AAA;
+}
+button {
+  background: #46C;
+  border: 1px solid #24A;
+  border-radius: 5px;
+  border: 0;
+  color: #FFF;
+  font-size: 11px;
+  font-weight: bold;
+  margin: 0;
+  padding: 5px 10px;
+  text-align: center;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+button:hover {
+  background: #8AF;
+}
+
+
+/* Admin pages */
+
+table.admin-grid {
   border: 1px solid #CCC;
   border-collapse: collapse;
+  font-size: 12px;
 }
-th {
+.admin-grid th {
   background: #333;
   border: 1px solid #666;
   color: #FFF;
   line-height: 30px;
 }
-tr {
+.admin-grid th.guests,
+.admin-grid td.guests {
+  width: 150px;
+}
+.admin-grid tr {
   color: #444;
 }
-tr:hover {
-  background: #FEA;
+.admin-grid tr:hover {
+  background: #DEF;
   color: #000;
 }
-tr.separator {
+.admin-grid tr.separator {
   background: #FFF;
   border: none;
   height: 15px;
 }
-td {
+.admin-grid td {
   border: 1px solid #CCC;
   padding: 4px;
 }
-textarea {
+.admin-grid textarea {
   display: block;
   width: 90%;
 }
 
+.admin-grid .guests ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.admin-grid .guests li {
+  background: #68A;
+  border: 1px outset;
+  border-width: 1px 0;
+  color: #FFF;
+  height: 18px;
+  line-height: 18px;
+  margin: 0;
+  padding: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-grid .guests li .button-remove {
+  display: block;
+  float: right;
+  height: 18px;
+  line-height: 12px;
+  padding: 0;
+  text-align: center;
+  width: 20px;
+}
+.admin-grid .button-add-guest {
+  display: block;
+  margin-top: 3px;
+  width: 100%;
+}
+.admin-grid .button-delete {
+  background: #C00;
+}
+
 
 /* Login page */
+
 #login {
   background: #EEE;
   border: 1px solid #CCC;
@@ -102,6 +176,42 @@ nav ul li a:hover {
   margin-left: 5px;
 }
 
+
+/* Edit popups */
+
+#overlay {
+  background: rgba(0,0,0,0.7);
+  display: none;
+  position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+  width: 100%;
+  z-index: 100;
+}
+.edit-popup {
+  background: #FFF;
+  border: 1px solid #CCC;
+  margin: 0 50%;
+  padding: 30px;
+  position: absolute;
+    top: 0;
+    left: -200px;
+  width: 400px;
+  z-index: 101;
+}
+.edit-popup label {
+  display: block;
+  font-weight: bold;
+}
+.edit-popup input {
+  background: #F8F8F8;
+  border: 1px solid #CCC;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 338px;
+}
 
 .clear {
   clear: both;

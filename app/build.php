@@ -1,17 +1,45 @@
+<?php
+
+if(isset($_GET["key"]) && isset($_GET["cid"])) {
+  $cid  = intval($_GET['cid']);
+  $key = $_GET["key"];
+	$outputFile = $key.".html";
+} else {
+  die("Key and CID required to build.");
+}
+
+ob_start();
+
+// connect to db
+include("_db.php");
+$link = mysql_connect($dbserver, $dbuser, $dbpass) or die('Cannot connect to the DB');
+
+mysql_select_db('connexus',$link) or die('Cannot select the DB');
+
+// get convention info
+$query = "SELECT ConventionID, Name, StartDate, EndDate, Location, Website, Description, Twitter, Tagline, Icon, Map FROM Conventions WHERE ConventionID = ".$cid." ORDER BY StartDate";
+$result = mysql_query($query,$link) or die('Errant query:  '.$query);
+$conventions = array();
+if(mysql_num_rows($result)) { 
+	while($temprow = mysql_fetch_assoc($result)) { 
+		$conventions[] = $temprow;
+	}
+}
+?>
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8"> 
-  <meta name="viewport" content=" width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=0;" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Con-Nexus Events</title>
-	<link rel="stylesheet" type="text/css" href="./css/jcon2012.min.css" />
+	<link rel="stylesheet" type="text/css" href="./css/".$key."_jqm.min.css" />
+  <link rel="stylesheet" type="text/css" href="./css/".$key."_. />
 	<link rel="stylesheet" type="text/css" href="./css/jquery.mobile.structure-1.1.0-rc.1.min.css" />
 	<link rel="stylesheet" type="text/css" href="./css/con-nexus.css" />
 	
-	<link rel="apple-touch-icon" href=".images/cons/jcon2012-icon.png" />
-	<link rel="shortcut icon"    href=".images/cons/jcon2012-icon.png" />
+	<link rel="apple-touch-icon" href=".<?php echo $conventions[0]["Icon"];?>" />
+	<link rel="shortcut icon"    href=".<?php echo $conventions[0]["Icon"];?>" />
 	
-  <script src="./js/cordova-1.6.0.js"></script>
 	<script src="./js/jquery-1.7.1.min.js"></script>
 	<script src="./js/underscore-min.js"></script>
 	<script src="./js/jsrender.js"></script>
@@ -24,8 +52,8 @@
 	
 	<script>
 		var Convention = {
-			ConventionID: '9',
-			Name: 'JordanCon 4'
+			ConventionID: '<?php echo $conventions[0]["ConventionID"]; ?>',
+			Name: '<?php echo $conventions[0]["Name"]; ?>'
 		};
 	</script>
 </head>
@@ -43,10 +71,10 @@
 		</div>
 		<div class="control-main ui-grid-b">
 			<div class="ui-block-a btn-map"     ><a href="#map"    	     data-role="button"><img alt="Map" src="./images/icon-map.png"           /><h4>Map</h4></a></div>
-			<div class="ui-block-b btn-todo"    ><a href="#todo"         data-role="button"><img alt="My ToDo"  src="./images/icon-todo.png"     /><h4>My ToDo</h4></a></div>
+			<div class="ui-block-b btn-todo"    ><a href="#todo"         data-role="button" class="todo-link"><img alt="My ToDo"  src="./images/icon-todo.png"     /><h4>My ToDo</h4></a></div>
 			<div class="ui-block-c btn-twitter" ><a href="#twitter"      data-role="button"><img alt="Twitter"  src="./images/icon-twitter.png"  /><h4>Twitter</h4></a></div>
 		</div>
-		<a href="#info" class="about-link" data-role="button">About JordanCon 4</a>
+		<a href="#info" class="about-link" data-role="button">About <?php echo $conventions[0]["Name"]; ?></a>
 	</div><!-- end content -->
 </div><!-- end page -->
 <!-- end dashboard -->
@@ -55,27 +83,21 @@
 <!-- start about -->
 <div data-role="page" id="info" class="page" data-add-back-btn="true">
 	<div data-role="header" data-position="fixed">
-		<h1>JordanCon 4</h1>
+		<h1><?php echo $conventions[0]["Name"]; ?></h1>
 	</div>
 	<div data-role="content">
 		<div data-role="collapsible-set">
 			<div data-role="collapsible" data-collapsed="false">
-				<h3>About JordanCon 4</h3>
-				<p>
-          JordanCon is a fantasy literature convention founded in honor of the late author known as Robert Jordan. Jordan was the author of the best-selling series "The Wheel of Time".
-          <br /><br />
-          JordanCon features four tracks of simultaneous programming, a Dealers' Hall, and charity events benefiting the Mayo Clinic. Past guests have included Harriet McDougal, Brandon Sanderson, David Wong, Jana G. Oliver, David B. Coe and Eugie Foster.
-          <br /><br />
-          New to JordanCon this year will be the Art Show, featuring art from a variety of fantasy and sci fi artists. Guests this year will include author Mary Robinette Kowal, artist Sam Weber and Toastmaster Melissa Craib Dombrowski.
-        </p>
+				<h3>About <?php echo $conventions[0]["Name"]; ?></h3>
+				<p><?php echo $conventions[0]["Description"]; ?></p>
 			</div>
 			<div data-role="collapsible" data-collapsed="true">
-				<img src="images/con-nexus-logo.png" style="width: 90%; max-width: 400px; display: block; margin: 0 auto;" />
+				<img src="images/con-nexus-logo.png" />
 				<h3>About This App</h3>
 				<p>
-					Con-Nexus is a web service created to generate custom mobile applications for conventions and conferences. It's still very much in the alpha stage, and I'd love to hear your comments or questions!
+					Con-Nexus is a web service created to generate custom mobile applications for conventions and conferences. It's still very much in the alpha stage, and I'd love to have your feedback!
 				</p>
-				<a href="#feedback" data-role="button" data-theme="a">Feedback</a>
+				<a href="mailto:ben@bengundersen.com" data-role="button" data-theme="a">ben@bengundersen.com</a>
 			</div>
 		</div>
 	</div>
@@ -91,7 +113,8 @@
 			<ul>
 				<li><a href="#dashboard"              data-icon="home"  data-iconpos="top">Home</a></li>
 				<li><a href="#schedule-pg{{:index}}"  data-icon="grid"  data-iconpos="top" data-theme="d">Schedule</a></li>
-				<li><a href="#todo"                   data-icon="check" data-iconpos="top">My ToDo</a></li>
+				<li><a href="#guests"                 data-icon="star"  data-iconpos="top">Guests</a></li>
+				<li><a href="#todo" class="todo-link" data-icon="check" data-iconpos="top">My ToDo</a></li>
 			</ul>
 		</div>
 		{{if previndex}}
@@ -103,7 +126,7 @@
 		{{/if}}
 	</div>
 	<div data-role="content">
-		<ul data-role="listview" data-filter="true">
+		<ul data-role="listview">
 		{{for events}}
 			{{if divider}}
 			<li data-role="list-divider">{{:time}}</li>
@@ -120,13 +143,19 @@
 
 <!-- start guests -->
 <div data-role="page" id="guests" class="page">
-	<div data-role="header" data-position="fixed">
-		<a href="#" class="ui-btn-left"   data-role="button" data-icon="arrow-l" onclick="history.go(-1);">Back</a>
-		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
+	<div data-role="header" data-position="fixed" data-backbtn="false">
+		<div data-role="navbar">
+			<ul>
+				<li><a href="#dashboard"               data-icon="home" data-iconpos="top">Home</a></li>
+				<li><a href="#schedule-pg1"            data-icon="grid" data-iconpos="top">Schedule</a></li>
+				<li><a href="#guests"                  data-theme="d" data-icon="star" data-iconpos="top">Guests</a></li>
+				<li><a href="#todo"  class="todo-link" data-icon="check" data-iconpos="top">My ToDo</a></li>
+			</ul>
+		</div>
 		<h1>Guests</h1>
 	</div>
 	<div data-role="content">
-		<ul id="guests-list" data-role="listview" data-filter="true">
+		<ul class="guests-list" data-role="listview">
 		</ul>
 	</div>
 </div>
@@ -138,16 +167,14 @@
 
 
 <!-- start guest-detail -->
+<script id="guest-detail-template" type="x-jquery-tmpl">
 <div data-role="page" id="guest-detail" class="page">
 	<div data-role="header" data-position="fixed">
 		<a href="#" class="ui-btn-left"   data-role="button" data-icon="arrow-l" onclick="history.go(-1);">Back</a>
 		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
 		<h1>Guest Detail</h1>
 	</div>
-	<div id="guest-detail-content" data-role="content" class="ui-content">
-    <ul data-role="listview"></ul>
-  </div>
-  <script id="guest-detail-template" type="x-jquery-tmpl">
+	<div id="guest-detail-content" data-role="content">
 		<h3>{{:FirstName}} {{:LastName}}</h3>
 		<p>{{:ConventionRole}}</p>
 		<p>{{:Bio}}</p>
@@ -159,25 +186,24 @@
 			{{/for}}
 		</ul>
 		{{/if}}
-	</script>
+	</div>
 </div>
+</script>
 <!-- end guest-detail -->
 
 
 
 <!-- start event-detail -->
+<script id="event-detail-template" type="x-jquery-tmpl">
 <div data-role="page" id="event-detail" class="page">
 	<div data-role="header" data-position="fixed">
 		<a href="#" class="ui-btn-left"   data-role="button" data-icon="arrow-l" onclick="history.go(-1);">Back</a>
 		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
 		<h1>Event Detail</h1>
 	</div>
-	<div id="event-detail-content" data-role="content" class="ui-content">
-    <ul data-role="listview"></ul>
-  </div>
-  <script id="event-detail-template" type="x-jquery-tmpl">
+	<div id="event-detail-content" data-role="content">
 		<h3>{{:Title}}</h3>
-		<h5>{{:DayAndTime}} in <a href="#map">{{:Location}}</a></h5>
+		<h5>{{:DayAndTime}} in {{:Location}}</h5>
 		<p>{{>Description}}</p>
 		<a href="#" class="todo-add" data-eventid="{{:EventID}}" data-role="button" data-icon="plus" data-theme="a">Add to My ToDo</a>
 		{{if EventGuests}}
@@ -189,36 +215,43 @@
 		</ul>
 		{{/if}}
 		<a href="#feedback" class="feedback-link" data-role="button">Feedback</a>
-  </script>
+	</div>
 </div>
+</script>
 <!-- end event-detail -->
 
 
 
 <!-- start todo -->
+<script id="todo-template" type="x-jquery-tmpl">
 <div data-role="page" id="todo" class="page">
 	<div data-role="header" data-position="fixed">
 		<div data-role="navbar">
 			<ul>
-				<li><a href="#dashboard"    data-icon="home" data-iconpos="top">Home</a></li>
-				<li><a href="#schedule-pg1" data-icon="grid" data-iconpos="top">Schedule</a></li>
-				<li><a href="#todo"         data-theme="d" data-icon="check" data-iconpos="top">My ToDo</a></li>
+				<li><a href="#dashboard"              data-icon="home" data-iconpos="top">Home</a></li>
+				<li><a href="#schedule-pg1"           data-icon="grid" data-iconpos="top">Schedule</a></li>
+				<li><a href="#guests"                 data-icon="star" data-iconpos="top">Guests</a></li>
+				<li><a href="#todo" class="todo-link" data-theme="d" data-icon="check" data-iconpos="top">My ToDo</a></li>
 			</ul>
 		</div>
 		<h1>My ToDo List</h1>
 	</div>
 	<div class="todo-content" data-role="content">
-		<ul id="todo-list" data-role="listview" data-inset="true" data-split-icon="delete" data-split-theme="a">
+		{{if items}}
+		<ul class="todo-list" data-role="listview" data-inset="true" data-split-icon="delete" data-split-theme="a">
+			{{for items}}
+			<li class="todo-item-{{:EventID}}">
+				<a href="#event-detail" class="event-detail-link" data-eventid="{{:EventID}}">{{:Title}}<br /><small>{{:DayAndTime}} in {{:Location}}</small></a>
+				<a class="todo-remove" href="#" data-eventid="{{:EventID}}"></a>
+			</li>
+			{{/for}}
 		</ul>
 		<a href="#" class="todo-clear" data-role="button">Remove All</a>
-		<p class="todo-empty">Your ToDo list is empty.</p>
+		{{else}}
+		<p>Your ToDo list is empty.</p>
+		{{/if}}
 	</div>
 </div>
-<script id="todo-list-template" type="x-jquery-tmpl">
-  <li class="todo-item-{{:EventID}}">
-    <a href="#event-detail" class="event-detail-link" data-eventid="{{:EventID}}">{{:Title}}<br /><small>{{:DayAndTime}} in {{:Location}}</small></a>
-    <a class="todo-remove" href="#" data-eventid="{{:EventID}}"></a>
-  </li>
 </script>
 <!-- end todo -->
 
@@ -232,30 +265,14 @@
 		<h1>Feedback</h1>
 	</div>
 	<div data-role="content">
-		<h3>General Feedback for JordanCon 4</h3>
-    <div id="rating">
-    <h5>Rate this panel from 1 (low) to 5 (high).</h5>
-    <fieldset data-role="controlgroup" data-type="horizontal" data-role="fieldcontain">
-      <input type="radio" name="rating" id="rating-1" value="1" />
-      <label for="rating-1">1</label>
-      <input type="radio" name="rating" id="rating-2" value="2" />
-      <label for="rating-2">2</label>
-      <input type="radio" name="rating" id="rating-3" value="3" />
-      <label for="rating-3">3</label>
-      <input type="radio" name="rating" id="rating-4" value="4" />
-      <label for="rating-4">4</label>
-      <input type="radio" name="rating" id="rating-5" value="5" />
-      <label for="rating-5">5</label>
-    </fieldset>
-    </div>
-    <p>
-      We appreciate your feedback! This form is anonymous; if you'd like to
-      be contacted regarding your comment or question, include your name and email address.
+		<h3>General Feedback for <?php echo $conventions[0]["Name"]; ?></h3>
+		<p>
+			Please enter your comments below. All feedback is anonymous; if you'd like to be contacted regarding your comment or question, please leave a name and email address. Thanks, we appreciate any and all feedback!
 		</p>
 		<form id="feedback-form">
 			<textarea class="content" name="content"></textarea>
 			<input    class="meta"    name="meta" type="hidden" value="Test" />
-			<a href="#" class="submit" data-role="button">Submit Feedback</a>
+			<a href="#" data-role="button">Submit Feedback</a>
 		</form>
 	</div>
 </div>
@@ -270,14 +287,22 @@
 		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
 		<h1>Map</h1>
 	</div>
-  <div data-role="content" style="overflow-x: scroll; padding: 0;">
+	<?php if($conventions[0]["Map"] <= '') { ?>
+	<div data-role="content">
+		<p>No map is available for this event.</p>
+		<a href="" data-role="button" onclick="history.go(-1);">Back</a>
+	</div>
+	<?php } else { ?>
+	<div data-role="content" style="overflow-x: scroll; padding: 0;">
 		<div id="map-controls">
 			<a href="" id="map-zoom-in"></a>
 			<a href="" id="map-zoom-out"></a>
 		</div>
 		<div id="map-container">
-			<img alt="Map" id="map-image" src="images/cons/jcon2012-map.jpg" />
+			<img alt="Map" id="map-image" src="<?php echo $conventions[0]["Map"]; ?>" />
 		</div>
+	</div>
+	<?php } ?>
 	</div>
 </div>
 <!-- end map -->
@@ -292,7 +317,7 @@
 		<h1>Tweets</h1>
 	</div>
 	<div data-role="content" style="padding: 10px;">
-		<div id="tweets-list">
+		<div id="list-tweets">
 		</div>
 	</div>
 </div>
@@ -302,3 +327,13 @@
 </html>
 
 <!-- clean up -->
+<?php
+	mysql_close($link);
+
+	$outputHtml = ob_get_contents(); 
+	$fh = fopen($outputFile, 'w') or die("can't open file $outputFile");
+	fwrite($fh, $outputHtml);
+	fclose($fh);
+	ob_end_clean();
+	echo "Build saved to $outputFile.";
+?>

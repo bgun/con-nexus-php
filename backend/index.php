@@ -2,7 +2,7 @@
 require_once("./lib/limonade.php");
 
 function configure() {
-  option('base_uri','/');
+  option('base_uri','');
 }
 
 function before($route) {
@@ -21,8 +21,10 @@ function login() {
       break;
     case 'error':
       $error_message = "Please enter both a username and a password.";
+      break;
     default:
       $error_message = false;
+      break;
   }
   if($error_message) {
     set('error', $error_message);
@@ -174,17 +176,93 @@ function api() {
   die();
 } 
 
-dispatch('/admin/home', 'adminHome');
-function adminHome() {
-
-  // Authenticate
+dispatch_post('/api/:con/:action', 'api_insert');
+function api_insert() {
+  // Valid session id required to write. TODO: security for remote calls
   if(!isset($_SESSION['id'])) {
-    die("Access denied.");
+    die('{ "error": "Access denied." }');
   } else {
     require_once("./model.php");
     $model = new Model();
     require_once("./_db.php");
     $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
+
+    $cid = params('con');
+
+    $obj = array();
+    foreach($_POST as $key => $value) {
+      $obj[$key] = $value;
+    }
+
+    switch(params('action')) {
+      case 'events':
+        $success = $model->addNewEvent($cid, $obj);
+        break;
+      case 'guests':
+        $success = $model->addNewGuest($obj);
+        break;
+    }
+
+    if($success) {
+      die('{"success": "true"}');
+    } else {
+      die('{"error": "Database write error."}');
+    };
+  }
+}
+
+dispatch_put('/api/:con/:action/:id', 'api_update');
+function api_update() {
+  // Valid session id required to write. TODO: security for remote calls
+  if(!isset($_SESSION['id'])) {
+    die('{ "error": "Access denied." }');
+  } else {
+    require_once("./model.php");
+    $model = new Model();
+    require_once("./_db.php");
+    $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
+
+    $id = params('id');
+    if(!is_numeric($id)) {
+      die('{"error": "Invalid ID."}');
+    }
+
+    $obj = array();
+    foreach($_PUT as $key => $value) {
+      $obj[$key] = $value;
+    }
+
+    switch(params('action')) {
+      case 'events':
+        $success = $model->updateEvent($id,$obj);
+        break;
+      case 'guests':
+        $success = $model->updateGuest($id,$obj);
+        break;
+    }
+
+    if($success) {
+      die('{"success": "true"}');
+    } else {
+      die('{"error": "Database write error."}');
+    };
+  }
+}
+
+dispatch('/admin/home', 'adminHome');
+function adminHome() {
+
+  // Authenticate
+  require_once("./model.php");
+  $model = new Model();
+  require_once("./_db.php");
+  $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
+
+  // Authenticate
+  if(!isset($_SESSION['id'])) {
+    $model->closeDB();
+    redirect_to('/login/error');
+  } else {
 
     $uid = $_SESSION['id'];
     $cons = $model->getConventions();
@@ -209,15 +287,16 @@ function adminHome() {
 dispatch('/admin/:con/:action/:id', 'adminAction');
 function adminAction() {
 
-  // Authenticate
-  if(!isset($_SESSION['id'])) {
-    die("Access denied.");
-  } else {
+  require_once("./model.php");
+  $model = new Model();
+  require_once("./_db.php");
+  $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
 
-    require_once("./model.php");
-    $model = new Model();
-    require_once("./_db.php");
-    $model->connectDB($dbserver, $dbname, $dbuser, $dbpass); 
+  // Authenticate
+  if(!$model->userHasConventionAccess($_SESSION['id'], params('con'))) {
+    $model->closeDB();
+    redirect_to('/login/error');
+  } else {
 
     $action = params('action');
     $cid    = params('con');
@@ -229,8 +308,9 @@ function adminAction() {
         break;
       case 'events':
         $data = $model->getEvents($cid);
-        foreach($data as $d) {
-          $d["Guests"] = $model->getGuestsForEvent($d["EventID"]);
+        foreach($data as $key=>$value) {
+          $gs = $model->getGuestsForEvent($data[$key]["EventID"]);
+          $data[$key]["Guests"] = $gs;
         }
         break;
       case 'guest':
@@ -243,7 +323,6 @@ function adminAction() {
         die("Invalid action.");
         break;
     }
-
     set('data',$data); // data for table grid
     set('convention', $model->getConvention($cid));
     set('user', $_SESSION);

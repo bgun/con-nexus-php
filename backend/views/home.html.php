@@ -1,5 +1,5 @@
 <h2>Select a convention:</h2>
-<table id="conventions-list">
+<table id="conventions-list" class="admin-grid">
 <tbody>
 <?php foreach($data as $d): ?>
   <tr data-conid="<?php echo $d['ConventionID']; ?>">

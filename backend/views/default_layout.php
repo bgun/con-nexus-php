@@ -7,6 +7,9 @@
 	<script src="/public/js/underscore-min.js"></script>
 	<script src="/public/js/jsrender.js"></script>
   <script src="/public/js/admin.js"></script>
+  <script>
+    var ConventionID = <?php echo $convention["ConventionID"]; ?>;
+  </script>
 </head>
 <body>
 
@@ -31,8 +34,9 @@
   <div class="clear"></div>
 </header>
 
-
+<div id="page">
 <?php echo $content; ?>
+</div>
 
 </body>
 </html>

@@ -158,9 +158,17 @@ a.ui-btn-up-d:hover {
 	text-decoration: none;
 }
 
+div.ui-input-search {
+  background: #EEE;
+}
+
 .ui-navbar a{
 	font-size: 0.7em;
 	font-weight: normal;
+}
+
+.ui-radio .ui-btn-inner {
+  padding: .6em 23px;
 }
 
 span.role-vendor {
@@ -193,14 +201,14 @@ span.role-guestperformance {
 #map-image {
 	display: block;
 	max-width: none !important;
-	width: 1200px;
+	width: 480px;
 }
 #map-controls {
-	background: #343934;
+	background: #111;
 	border-radius: 0 5px 5px 0;
 	height: 100px;
 	position: fixed;
-		top: 80px;
+		bottom: 20px;
 	width: 50px;
 	z-index: 500;
 }

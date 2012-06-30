@@ -22,6 +22,16 @@ class Model {
     }
   }
 
+  function userHasConventionAccess($uid, $cid) {
+    $query = "SELECT UserID, ConventionID FROM linkusersconventions WHERE UserID = $uid AND ConventionID = $cid";
+    $result = mysql_query($query, $this->link);
+    if(mysql_num_rows($result) === 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   function getConvention($cid) {
     $query  = "SELECT ConventionID, Name, StartDate, UNIX_TIMESTAMP(StartDate) AS StartDateUT";
     $query .= ",EndDate, UNIX_TIMESTAMP(EndDate) AS EndDateUT, Description, Location, Website, Twitter";
@@ -78,6 +88,7 @@ class Model {
     $query .= " FROM events E";
     $query .= " LEFT JOIN conventions C ON (C.ConventionID = E.ConventionID)";
     $query .= " LEFT JOIN linkeventsguests LEG ON(LEG.EventID = E.EventID)";
+    $query .= " LEFT JOIN guests G ON(LEG.GuestID = G.GuestID)";
     $query .= " WHERE E.ConventionID = $cid AND E.EventID = $id";
     $query .= " GROUP BY EventID";
 	  $result = mysql_query($query,$this->link) or die('Errant query:  '.$query.'<br /><br />'.mysql_error());
@@ -167,5 +178,38 @@ class Model {
       return false;
     }
   }
+
+  // Insert functions (POST)
+
+  function addNewEvent($cid, $obj) {
+    $event_title = $obj["Title"];
+    $event_start = $obj["StartDate"];
+    $event_desc  = $obj["Description"];
+    $event_loc   = $obj["Location"];
+
+    $query  = "INSERT INTO events (ConventionID, Title, StartDate, Description, Location) VALUES (";
+    $query .= "$cid,'$event_title','$event_start','$event_desc','$event_loc')";
+
+    return mysql_query($query);
+  }
+
+  function addNewGuest($obj) {
+    $guest_first   = $obj["FirstName"];
+    $guest_last    = $obj["LastName"];
+    $guest_bio     = $obj["Bio"];
+    $guest_website = $obj["Website"];
+
+    $query  = "INSERT INTO guests (FirstName, LastName, Bio, Website) VALUES (";
+    $query .= "'$guest_first','$guest_last','$guest_bio','$guest_website')";
+
+    return mysql_query($query);
+  }
+
+  // Update functions (PUT)
+
+
+  // Delete functions (DELETE)
+
+
 }
 ?>

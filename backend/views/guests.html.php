@@ -1,4 +1,5 @@
-<table id="guests-list">
+<form id="guests-form">
+<table id="guests-grid" class="admin-grid">
 <thead>
   <tr>
     <th>Guest First Name</th>
@@ -15,7 +16,7 @@
     <td><input type="text" class="last-name"  value="Last Name"></td>
     <td><textarea class="description">Guest Bio</textarea></td>
     <td><input type="text" class="role"       value="Role"></td>
-    <td><button>Add New</button></td>
+    <td><button class="button-add">Add New</button></td>
   </tr>
   <tr class="separator"></tr>
 <?php foreach($data as $d): ?>
@@ -24,8 +25,9 @@
     <td><?php echo $d["LastName"]; ?></td>
     <td><?php echo $d["Bio"]; ?></td>
     <td><?php echo $d["ConventionRole"]; ?></td>
-    <td><button>Delete</button></td>
+    <td><button class="button-delete">Delete</button></td>
   </tr>
 <?php endforeach; ?>
 </tbody>
 </table>
+</form>
