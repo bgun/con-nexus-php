@@ -34,8 +34,8 @@ if(mysql_num_rows($result)) {
 	<meta charset="utf-8"> 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Con-Nexus Events</title>
-	<link rel="stylesheet" type="text/css" href="./con_assets/<?php echo $key; ?>/theme.min.css" />
 	<link rel="stylesheet" type="text/css" href="./css/jquery.mobile.structure-1.1.0-rc.1.min.css" />
+	<link rel="stylesheet" type="text/css" href="./con_assets/<?php echo $key; ?>/theme.min.css" />
 	<link rel="stylesheet" type="text/css" href="./css/con-nexus.css" />
 	
 	<link rel="apple-touch-icon" href=".<?php echo $conventions[0]["Icon"];?>" />
@@ -44,10 +44,17 @@ if(mysql_num_rows($result)) {
   <style>
     div.ui-body-c {
     	background: url("./con_assets/<?php echo $key; ?>/bg.jpg");
-    	background-color: #454844;
+    	background-color: #444;
     	background-size: 100% auto;
     }
   </style>
+
+	<script>
+		var Convention = {
+			ConventionID: '<?php echo $conventions[0]["ConventionID"]; ?>',
+			Name: '<?php echo $conventions[0]["Name"]; ?>'
+		};
+	</script>
 	
 	<script src="./js/jquery-1.7.1.min.js"></script>
 	<script src="./js/underscore-min.js"></script>
@@ -56,15 +63,6 @@ if(mysql_num_rows($result)) {
 	<script src="./js/con-nexus.js"></script>
 	<script src="./js/jquery.mobile-1.1.0.min.js"></script>
 	
-	<script src="./js/data/data-events.js"></script>
-	<script src="./js/data/data-guests.js"></script>
-	
-	<script>
-		var Convention = {
-			ConventionID: '<?php echo $conventions[0]["ConventionID"]; ?>',
-			Name: '<?php echo $conventions[0]["Name"]; ?>'
-		};
-	</script>
 </head>
 <body>
 
@@ -164,7 +162,7 @@ if(mysql_num_rows($result)) {
 		<h1>Guests</h1>
 	</div>
 	<div data-role="content">
-		<ul class="guests-list" data-role="listview">
+		<ul id="guests-list" data-role="listview">
 		</ul>
 	</div>
 </div>
@@ -176,14 +174,14 @@ if(mysql_num_rows($result)) {
 
 
 <!-- start guest-detail -->
-<script id="guest-detail-template" type="x-jquery-tmpl">
 <div data-role="page" id="guest-detail" class="page">
 	<div data-role="header" data-position="fixed">
 		<a href="#" class="ui-btn-left"   data-role="button" data-icon="arrow-l" onclick="history.go(-1);">Back</a>
 		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
 		<h1>Guest Detail</h1>
 	</div>
-	<div id="guest-detail-content" data-role="content">
+	<div id="guest-detail-content" data-role="content"></div>
+  <script id="guest-detail-template" type="x-jquery-tmpl">
 		<h3>{{:FirstName}} {{:LastName}}</h3>
 		<p>{{:ConventionRole}}</p>
 		<p>{{:Bio}}</p>
@@ -195,7 +193,7 @@ if(mysql_num_rows($result)) {
 			{{/for}}
 		</ul>
 		{{/if}}
-	</div>
+	</script>
 </div>
 </script>
 <!-- end guest-detail -->
@@ -203,14 +201,14 @@ if(mysql_num_rows($result)) {
 
 
 <!-- start event-detail -->
-<script id="event-detail-template" type="x-jquery-tmpl">
 <div data-role="page" id="event-detail" class="page">
 	<div data-role="header" data-position="fixed">
 		<a href="#" class="ui-btn-left"   data-role="button" data-icon="arrow-l" onclick="history.go(-1);">Back</a>
 		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
 		<h1>Event Detail</h1>
 	</div>
-	<div id="event-detail-content" data-role="content">
+	<div id="event-detail-content" data-role="content"></div>
+  <script id="event-detail-template" type="x-jquery-tmpl">
 		<h3>{{:Title}}</h3>
 		<h5>{{:DayAndTime}} in {{:Location}}</h5>
 		<p>{{>Description}}</p>
@@ -224,7 +222,7 @@ if(mysql_num_rows($result)) {
 		</ul>
 		{{/if}}
 		<a href="#feedback" class="feedback-link" data-role="button">Feedback</a>
-	</div>
+	</script>
 </div>
 </script>
 <!-- end event-detail -->
@@ -232,7 +230,6 @@ if(mysql_num_rows($result)) {
 
 
 <!-- start todo -->
-<script id="todo-template" type="x-jquery-tmpl">
 <div data-role="page" id="todo" class="page">
 	<div data-role="header" data-position="fixed">
 		<div data-role="navbar">
@@ -246,20 +243,15 @@ if(mysql_num_rows($result)) {
 		<h1>My ToDo List</h1>
 	</div>
 	<div class="todo-content" data-role="content">
-		{{if items}}
-		<ul class="todo-list" data-role="listview" data-inset="true" data-split-icon="delete" data-split-theme="a">
-			{{for items}}
+		<ul id="todo-list" data-role="listview" data-inset="true" data-split-icon="delete" data-split-theme="a"></ul>
+		<a href="#" class="todo-clear" data-role="button">Remove All</a>
+    <script id="todo-list-template" type="x-jquery-tmpl">
 			<li class="todo-item-{{:EventID}}">
 				<a href="#event-detail" class="event-detail-link" data-eventid="{{:EventID}}">{{:Title}}<br /><small>{{:DayAndTime}} in {{:Location}}</small></a>
 				<a class="todo-remove" href="#" data-eventid="{{:EventID}}"></a>
 			</li>
-			{{/for}}
-		</ul>
-		<a href="#" class="todo-clear" data-role="button">Remove All</a>
-		{{else}}
-		<p>Your ToDo list is empty.</p>
-		{{/if}}
-	</div>
+	  </script>
+  </div>
 </div>
 </script>
 <!-- end todo -->

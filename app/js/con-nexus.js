@@ -3,9 +3,7 @@ var daysofweek = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday',
 var tkey = 'todo5';
 var feedbackSubject = null;
 var scheduleRendered = false;
-var Data = {
-	Model: {}
-};
+var Model = {};
 
 // JQM options
 $(document).bind("mobileinit", function(){
@@ -23,12 +21,12 @@ function buildSchedule() {
 	var output = [];
 	var day, dow, o;
 	var dat;
-	if(Data.events.count > 0) {
-		// massage Data.events
-		for(var i in Data.events.items) {
+	if(Model.events.count > 0) {
+		// massage Model.events
+		for(var i in Model.events.items) {
 			// add DayAndTime
-			Data.events.items[i].DayAndTime = getDayTime(Data.events.items[i].StartDate);
-			d.push(Data.events.items[i]);
+			Model.events.items[i].DayAndTime = getDayTime(Model.events.items[i].StartDate);
+			d.push(Model.events.items[i]);
 		}
 		d = _.sortBy(d, function(n) {
 			return n.StartDate;
@@ -73,6 +71,22 @@ function buildSchedule() {
 	var html = $('#schedule-template').render(output);
   $('.schedule').trigger('updatelayout');
   $('body').append(html);
+}
+
+function renderGuests() {
+  var d = [];
+  // make an array of all the guests
+  for(var i in Model.guests.items) {
+    d.push(Model.guests.items[i]);
+  }
+  // sort the array (yay Underscore!)
+  d = _.sortBy(d, function(n) {
+    return n.FirstName+" "+n.LastName;
+  });
+  // render the list template
+  var html = $('#guests-template').render(d);
+
+  return html;
 }
 
 function getShortTime(timestr) {
@@ -151,9 +165,10 @@ function renderToDo() {
   var todoObjects = [];
   var newobj, html;
   for(var i = 0; i < todoArray.length; i++) {
-    newobj = Data.events.items[todoArray[i]];
+    newobj = Model.events.items[todoArray[i]];
     todoObjects.push(newobj);
   }
+
   if(todoObjects.length) {
     todoObjects = _.sortBy(todoObjects, function(n) {
       return n.StartDate;
@@ -166,8 +181,11 @@ function renderToDo() {
     $('.todo-empty').show();
     $('.todo-clear').hide();
 	}
+
   $('#todo').trigger('updatelayout');
   $('#todo-list').html(html).listview('refresh').trigger('updatelayout');
+
+  console.log(html);
   
   if($('#todo-list li').length > 1) {
     $('#todo-list li:first').addClass('ui-corner-top');
@@ -185,10 +203,7 @@ function clearToDo() {
 
 /* Page init functions */
 
-$(function() {
-  buildSchedule();
-  document.addEventListener("deviceready", function() {
-  }, false);
+function init() {
 
   // caching ye olde selectors
   var $eventDetail = $('#event-detail');
@@ -212,35 +227,23 @@ $(function() {
   var $twitter = $('#twitter');
   var $tweetsList = $('#tweets-list');
 
-  // create guests page
-  (function() {
-    var d = [];
-    // make an array of all the guests
-    for(var i in Data.guests.items) {
-      d.push(Data.guests.items[i]);
-    }
-    // sort the array (yay Underscore!)
-    d = _.sortBy(d, function(n) {
-      return n.FirstName+" "+n.LastName;
-    });
-    // render the list template
-    var html = $('#guests-template').render(d);
-    $guestsList.html(html).trigger('updatelayout');
-  }());
+ 
+  buildSchedule();
+  $guestsList.html( renderGuests() ).trigger('updatelayout');
 
   $('.guest-detail-link').live('click',function(e) {
     // when a list item is selected, render the new guest detail page,
     // remove the old one from DOM, append the new one and switch.
     e.preventDefault();
-    Data.Model.Guest = $(this).attr('data-guestid');
+    Model.guestDetail = $(this).attr('data-guestid');
     
-    var d = Data.guests.items[Data.Model.Guest];
+    var d = Model.guests.items[Model.guestDetail];
     if(d.EventList) {
       d.GuestEvents = [];
       var tmp = d.EventList.split(',');
       for(var i in tmp) {
-        if(Data.events.items[tmp[i]]) {
-          d.GuestEvents.push(Data.events.items[tmp[i]]);
+        if(Model.events.items[tmp[i]]) {
+          d.GuestEvents.push(Model.events.items[tmp[i]]);
         }
       }
     }
@@ -254,15 +257,15 @@ $(function() {
 
   $('.event-detail-link').live('click', function(e) {
     e.preventDefault();
-    Data.Model.Event = $(this).attr('data-eventid');
+    Model.eventDetail = $(this).attr('data-eventid');
     
-    var d = Data.events.items[Data.Model.Event];
+    var d = Model.events.items[Model.eventDetail];
     if(d.GuestList) {
       d.EventGuests = [];
       var tmp = d.GuestList.split(',');
       for(var i in tmp) {
-        if(Data.guests.items[tmp[i]]) {
-          d.EventGuests.push(Data.guests.items[tmp[i]]);
+        if(Model.guests.items[tmp[i]]) {
+          d.EventGuests.push(Model.guests.items[tmp[i]]);
         }
       }
     }
@@ -270,7 +273,7 @@ $(function() {
     var html = $('#event-detail-template').render(d);
     $eventDetailContent.empty().html(html);
 
-    if(_.include(getToDo(), String(Data.Model.Event))) {
+    if(_.include(getToDo(), String(Model.eventDetail))) {
       $eventDetailContent.find('.todo-add').addClass('ui-disabled');
     } else {
       $eventDetailContent.find('.todo-add').removeClass('ui-disabled');
@@ -386,6 +389,42 @@ $(function() {
   });
   $feedback.bind('pagebeforeshow', function() {
     $feedback.find('h3').text(feedbackSubject);
+  });
+} // end init
+
+function dataLoadError() {
+  App.Notify('There was a problem loading events and guests data.');
+}
+
+$(function() {
+  var cid = Convention.ConventionID;
+
+  // Load events and guests; when both are loaded, call init
+
+  document.addEventListener("deviceready", function() {
+  }, false);
+
+  $.ajax({
+    url: 'http://con-nexus.com/api/'+cid+'/events',
+    type: 'GET',
+    dataType: 'jsonp',
+    success: function(data) {
+      Model.events = data;
+      if(Model.guests) {
+        init();
+      }
+    }
+  });
+  $.ajax({
+    url: 'http://con-nexus.com/api/'+cid+'/guests',
+    type: 'GET',
+    dataType: 'jsonp',
+    success: function(data) {
+      Model.guests = data;
+      if(Model.events) {
+        init();
+      }
+    } 
   });
 
 });
