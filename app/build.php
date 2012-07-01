@@ -52,7 +52,8 @@ if(mysql_num_rows($result)) {
 	<script>
 		var Convention = {
 			ConventionID: '<?php echo $conventions[0]["ConventionID"]; ?>',
-			Name: '<?php echo $conventions[0]["Name"]; ?>'
+			Name:         '<?php echo $conventions[0]["Name"]; ?>',
+      Twitter:      '<?php echo $conventions[0]["Twitter"]; ?>'
 		};
 	</script>
 	
@@ -288,22 +289,15 @@ if(mysql_num_rows($result)) {
 		<a href="#dashboard" class="ui-btn-right"  data-role="button" data-icon="home" data-iconpos="notext">Home</a>
 		<h1>Map</h1>
 	</div>
-	<?php if($conventions[0]["Map"] <= '') { ?>
-	<div data-role="content">
-		<p>No map is available for this event.</p>
-		<a href="" data-role="button" onclick="history.go(-1);">Back</a>
-	</div>
-	<?php } else { ?>
 	<div data-role="content" style="overflow-x: scroll; padding: 0;">
 		<div id="map-controls">
 			<a href="" id="map-zoom-in"></a>
 			<a href="" id="map-zoom-out"></a>
 		</div>
 		<div id="map-container">
-			<img alt="Map" id="map-image" src="<?php echo $conventions[0]["Map"]; ?>" />
+			<img alt="Map" id="map-image" src="/con_assets/<?php echo $key; ?>/map.jpg" />
 		</div>
 	</div>
-	<?php } ?>
 	</div>
 </div>
 <!-- end map -->
@@ -318,7 +312,7 @@ if(mysql_num_rows($result)) {
 		<h1>Tweets</h1>
 	</div>
 	<div data-role="content" style="padding: 10px;">
-		<div id="list-tweets">
+		<div id="tweets-list">
 		</div>
 	</div>
 </div>

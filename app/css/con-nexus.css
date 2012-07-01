@@ -102,11 +102,16 @@ img.con-logo {
 	border-top: 1px solid #EEE;
 	border-bottom: 1px solid #CCC;
 	clear: both;
+  color: #444;
 	display: block;
 	font-size: 0.9em;
 	list-style: none;
 	margin: 0;
 	padding: 15px;
+  text-shadow: none;
+}
+#twitter ul.tweet_list li a {
+  text-shadow: none;
 }
 #twitter ul.tweet_list li.tweet_first {
 	border-top: 0px;
