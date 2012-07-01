@@ -9,7 +9,11 @@ $(function() {
   });
 
   $eventsGrid.find('tr').click(function() {
-    var eid = $(this).attr('data-eventid');
+    var $t = $(this);
+    var eid = $t.attr('data-eventid');
+    if($t.index() === 1) {
+      return;
+    }
     $.ajax({
       url: '/api/'+ConventionID+'/event/'+eid,
       type: 'GET',

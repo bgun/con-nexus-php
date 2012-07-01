@@ -8,7 +8,9 @@ if(isset($_GET["key"]) && isset($_GET["cid"])) {
   die("Key and CID required to build.");
 }
 
-ob_start();
+if(isset($_GET['save']) && $_GET['save'] == true) {
+  ob_start();
+}
 
 // connect to db
 include("_db.php");
@@ -32,13 +34,20 @@ if(mysql_num_rows($result)) {
 	<meta charset="utf-8"> 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Con-Nexus Events</title>
-	<link rel="stylesheet" type="text/css" href="./css/".$key."_jqm.min.css" />
-  <link rel="stylesheet" type="text/css" href="./css/".$key."_. />
+	<link rel="stylesheet" type="text/css" href="./con_assets/<?php echo $key; ?>/theme.min.css" />
 	<link rel="stylesheet" type="text/css" href="./css/jquery.mobile.structure-1.1.0-rc.1.min.css" />
 	<link rel="stylesheet" type="text/css" href="./css/con-nexus.css" />
 	
 	<link rel="apple-touch-icon" href=".<?php echo $conventions[0]["Icon"];?>" />
 	<link rel="shortcut icon"    href=".<?php echo $conventions[0]["Icon"];?>" />
+
+  <style>
+    div.ui-body-c {
+    	background: url("./con_assets/<?php echo $key; ?>/bg.jpg");
+    	background-color: #454844;
+    	background-size: 100% auto;
+    }
+  </style>
 	
 	<script src="./js/jquery-1.7.1.min.js"></script>
 	<script src="./js/underscore-min.js"></script>
@@ -63,7 +72,7 @@ if(mysql_num_rows($result)) {
 <!-- start dashboard -->
 <div data-role="page" id="dashboard" class="page">
 	<div data-role="content">
-		<img src="./images/cons/jcon2011-header.png" class="convention-header" />
+		<img src="./con_assets/<?php echo $key; ?>/logo.png" class="convention-header" />
 		<div class="control-main ui-grid-b">
 			<div class="ui-block-a btn-schedule"><a href="#schedule-pg1" data-role="button"><img alt="Schedule" src="./images/icon-schedule.png" /><h4>Schedule</h4></a></div>
 			<div class="ui-block-b btn-guests"  ><a href="#guests"       data-role="button"><img alt="Guests"   src="./images/icon-guests.png"   /><h4>Guests</h4></a></div>
@@ -95,9 +104,9 @@ if(mysql_num_rows($result)) {
 				<img src="images/con-nexus-logo.png" />
 				<h3>About This App</h3>
 				<p>
-					Con-Nexus is a web service created to generate custom mobile applications for conventions and conferences. It's still very much in the alpha stage, and I'd love to have your feedback!
+					Con-Nexus is a platform created to generate custom mobile applications for conventions and conferences. It's still very much in the alpha stage, and I'd love to have your feedback!
 				</p>
-				<a href="mailto:ben@bengundersen.com" data-role="button" data-theme="a">ben@bengundersen.com</a>
+				<a href="mailto:ben@bengundersen.com" data-role="button" data-theme="a">Email</a>
 			</div>
 		</div>
 	</div>
@@ -330,10 +339,12 @@ if(mysql_num_rows($result)) {
 <?php
 	mysql_close($link);
 
-	$outputHtml = ob_get_contents(); 
-	$fh = fopen($outputFile, 'w') or die("can't open file $outputFile");
-	fwrite($fh, $outputHtml);
-	fclose($fh);
-	ob_end_clean();
-	echo "Build saved to $outputFile.";
+  if(isset($_GET['save']) && $_GET['save'] == true) {
+  	$outputHtml = ob_get_contents(); 
+	  $fh = fopen($outputFile, 'w') or die("can't open file $outputFile");
+  	fwrite($fh, $outputHtml);
+	  fclose($fh);
+  	ob_end_clean();
+	  echo "Build saved to $outputFile.";
+  }
 ?>
