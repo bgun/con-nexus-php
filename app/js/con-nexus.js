@@ -304,7 +304,7 @@ function init() {
     $tweetsList.tweet({
       avatar_size: 48,
       count: 20,
-      query: "jordancon",
+      query: Convention.Twitter,
       loading_text: "searching twitter...",
       template: "{avatar}{user}{text}{time}"
     });

@@ -3,3 +3,4 @@ _datafiles
 _workfiles
 backend/_db.php
 *.swp
+/app/con_assets

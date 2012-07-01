@@ -10,7 +10,11 @@ function before($route) {
   layout('default_layout.php');
 }
 
-dispatch('/',             'login');
+dispatch('/', 'splash');
+function splash() {
+  return render('splash.html.php',null);
+}
+
 dispatch('/login/:error', 'login');
 dispatch('/logout',       'login');
 function login() {
