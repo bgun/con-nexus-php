@@ -16,10 +16,10 @@ if(isset($_GET['save']) && $_GET['save'] == true) {
 include("_db.php");
 $link = mysql_connect($dbserver, $dbuser, $dbpass) or die('Cannot connect to the DB');
 
-mysql_select_db('connexus',$link) or die('Cannot select the DB');
+mysql_select_db($dbname, $link) or die('Cannot select the DB');
 
 // get convention info
-$query = "SELECT ConventionID, Name, StartDate, EndDate, Location, Website, Description, Twitter, Tagline, Icon, Map FROM Conventions WHERE ConventionID = ".$cid." ORDER BY StartDate";
+$query = "SELECT ConventionID, Name, StartDate, EndDate, Location, Website, Description, Twitter, Tagline, Icon, Map FROM conventions WHERE ConventionID = ".$cid." ORDER BY StartDate";
 $result = mysql_query($query,$link) or die('Errant query:  '.$query);
 $conventions = array();
 if(mysql_num_rows($result)) { 
@@ -34,7 +34,7 @@ if(mysql_num_rows($result)) {
 	<meta charset="utf-8"> 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Con-Nexus Events</title>
-	<link rel="stylesheet" type="text/css" href="./css/jquery.mobile.structure-1.1.0-rc.1.min.css" />
+	<link rel="stylesheet" type="text/css" href="./css/jquery.mobile.structure-1.1.1.min.css" />
 	<link rel="stylesheet" type="text/css" href="./con_assets/<?php echo $key; ?>/theme.min.css" />
 	<link rel="stylesheet" type="text/css" href="./css/con-nexus.css" />
 	
@@ -45,7 +45,7 @@ if(mysql_num_rows($result)) {
     div.ui-body-c {
     	background: url("./con_assets/<?php echo $key; ?>/bg.jpg");
     	background-color: #444;
-    	background-size: 100% auto;
+      background-position: center center;
     }
   </style>
 
@@ -56,17 +56,21 @@ if(mysql_num_rows($result)) {
       Twitter:      '<?php echo $conventions[0]["Twitter"]; ?>'
 		};
 	</script>
-	
+
+  <script src="./js/cordova-1.9.0.js"></script>	
 	<script src="./js/jquery-1.7.1.min.js"></script>
 	<script src="./js/underscore-min.js"></script>
 	<script src="./js/jsrender.js"></script>
 	<script src="./js/jquery.tweet.js"></script>
 	<script src="./js/con-nexus.js"></script>
-	<script src="./js/jquery.mobile-1.1.0.min.js"></script>
+	<script src="./js/jquery.mobile-1.1.1.min.js"></script>
 	
 </head>
 <body>
 
+<div id="loading">
+  <p>Loading...</p>
+</div>
 
 <!-- start dashboard -->
 <div data-role="page" id="dashboard" class="page">
@@ -79,7 +83,7 @@ if(mysql_num_rows($result)) {
 		</div>
 		<div class="control-main ui-grid-b">
 			<div class="ui-block-a btn-map"     ><a href="#map"    	     data-role="button"><img alt="Map" src="./images/icon-map.png"           /><h4>Map</h4></a></div>
-			<div class="ui-block-b btn-todo"    ><a href="#todo"         data-role="button" class="todo-link"><img alt="My ToDo"  src="./images/icon-todo.png"     /><h4>My ToDo</h4></a></div>
+			<div class="ui-block-b btn-todo"    ><a href="#todo"         data-role="button"><img alt="My ToDo"  src="./images/icon-todo.png"     /><h4>My ToDo</h4></a></div>
 			<div class="ui-block-c btn-twitter" ><a href="#twitter"      data-role="button"><img alt="Twitter"  src="./images/icon-twitter.png"  /><h4>Twitter</h4></a></div>
 		</div>
 		<a href="#info" class="about-link" data-role="button">About <?php echo $conventions[0]["Name"]; ?></a>
@@ -106,6 +110,9 @@ if(mysql_num_rows($result)) {
 					Con-Nexus is a platform created to generate custom mobile applications for conventions and conferences. It's still very much in the alpha stage, and I'd love to have your feedback!
 				</p>
 				<a href="mailto:ben@bengundersen.com" data-role="button" data-theme="a">Email</a>
+        <p>
+          Made with &hearts; in New York City
+        </p>
 			</div>
 		</div>
 	</div>
@@ -122,7 +129,7 @@ if(mysql_num_rows($result)) {
 				<li><a href="#dashboard"              data-icon="home"  data-iconpos="top">Home</a></li>
 				<li><a href="#schedule-pg{{:index}}"  data-icon="grid"  data-iconpos="top" data-theme="d">Schedule</a></li>
 				<li><a href="#guests"                 data-icon="star"  data-iconpos="top">Guests</a></li>
-				<li><a href="#todo" class="todo-link" data-icon="check" data-iconpos="top">My ToDo</a></li>
+				<li><a href="#todo" class="todo-link" data-icon="check" data-iconpos="top">ToDo</a></li>
 			</ul>
 		</div>
 		{{if previndex}}
@@ -157,13 +164,13 @@ if(mysql_num_rows($result)) {
 				<li><a href="#dashboard"               data-icon="home" data-iconpos="top">Home</a></li>
 				<li><a href="#schedule-pg1"            data-icon="grid" data-iconpos="top">Schedule</a></li>
 				<li><a href="#guests"                  data-theme="d" data-icon="star" data-iconpos="top">Guests</a></li>
-				<li><a href="#todo"  class="todo-link" data-icon="check" data-iconpos="top">My ToDo</a></li>
+				<li><a href="#todo"  class="todo-link" data-icon="check" data-iconpos="top">ToDo</a></li>
 			</ul>
 		</div>
 		<h1>Guests</h1>
 	</div>
 	<div data-role="content">
-		<ul id="guests-list" data-role="listview">
+		<ul id="guests-list" data-role="listview" data-filter="true">
 		</ul>
 	</div>
 </div>
@@ -211,7 +218,7 @@ if(mysql_num_rows($result)) {
 	<div id="event-detail-content" data-role="content"></div>
   <script id="event-detail-template" type="x-jquery-tmpl">
 		<h3>{{:Title}}</h3>
-		<h5>{{:DayAndTime}} in {{:Location}}</h5>
+		<h5>{{:DayAndTime}} in <a href="#map">{{:Location}}</a></h5>
 		<p>{{>Description}}</p>
 		<a href="#" class="todo-add" data-eventid="{{:EventID}}" data-role="button" data-icon="plus" data-theme="a">Add to My ToDo</a>
 		{{if EventGuests}}
@@ -238,7 +245,7 @@ if(mysql_num_rows($result)) {
 				<li><a href="#dashboard"              data-icon="home" data-iconpos="top">Home</a></li>
 				<li><a href="#schedule-pg1"           data-icon="grid" data-iconpos="top">Schedule</a></li>
 				<li><a href="#guests"                 data-icon="star" data-iconpos="top">Guests</a></li>
-				<li><a href="#todo" class="todo-link" data-theme="d" data-icon="check" data-iconpos="top">My ToDo</a></li>
+				<li><a href="#todo" class="todo-link" data-theme="d" data-icon="check" data-iconpos="top">ToDo</a></li>
 			</ul>
 		</div>
 		<h1>My ToDo List</h1>
@@ -246,10 +253,10 @@ if(mysql_num_rows($result)) {
 	<div class="todo-content" data-role="content">
 		<ul id="todo-list" data-role="listview" data-inset="true" data-split-icon="delete" data-split-theme="a"></ul>
 		<a href="#" class="todo-clear" data-role="button">Remove All</a>
+    <p class="todo-empty hide">Your ToDo list is empty.</p>
     <script id="todo-list-template" type="x-jquery-tmpl">
 			<li class="todo-item-{{:EventID}}">
-				<a href="#event-detail" class="event-detail-link" data-eventid="{{:EventID}}">{{:Title}}<br /><small>{{:DayAndTime}} in {{:Location}}</small></a>
-				<a class="todo-remove" href="#" data-eventid="{{:EventID}}"></a>
+				<a href="#event-detail" class="event-detail-link" data-eventid="{{:EventID}}">{{:Title}}<br /><small>{{:DayAndTime}} in {{:Location}}</small></a><a class="todo-remove" href="#" data-eventid="{{:EventID}}"></a>
 			</li>
 	  </script>
   </div>
@@ -268,13 +275,28 @@ if(mysql_num_rows($result)) {
 	</div>
 	<div data-role="content">
 		<h3>General Feedback for <?php echo $conventions[0]["Name"]; ?></h3>
+    <div id="rating">
+      <h5>Rate this panel from 1 (low) to 5 (high).</h5>
+      <fieldset data-role="controlgroup" data-type="horizontal" data-role="fieldcontain">
+        <input type="radio" name="rating" id="rating-1" value="1" />
+        <label for="rating-1">1</label>
+        <input type="radio" name="rating" id="rating-2" value="2" />
+        <label for="rating-2">2</label>
+        <input type="radio" name="rating" id="rating-3" value="3" />
+        <label for="rating-3">3</label>
+        <input type="radio" name="rating" id="rating-4" value="4" />
+        <label for="rating-4">4</label>
+        <input type="radio" name="rating" id="rating-5" value="5" />
+        <label for="rating-5">5</label>
+      </fieldset>
+    </div>
 		<p>
 			Please enter your comments below. All feedback is anonymous; if you'd like to be contacted regarding your comment or question, please leave a name and email address. Thanks, we appreciate any and all feedback!
 		</p>
 		<form id="feedback-form">
 			<textarea class="content" name="content"></textarea>
 			<input    class="meta"    name="meta" type="hidden" value="Test" />
-			<a href="#" data-role="button">Submit Feedback</a>
+			<a href="#" class="submit" data-role="button">Submit Feedback</a>
 		</form>
 	</div>
 </div>
@@ -295,7 +317,7 @@ if(mysql_num_rows($result)) {
 			<a href="" id="map-zoom-out"></a>
 		</div>
 		<div id="map-container">
-			<img alt="Map" id="map-image" src="/con_assets/<?php echo $key; ?>/map.jpg" />
+			<img alt="Map" id="map-image" src="./con_assets/<?php echo $key; ?>/map.jpg" />
 		</div>
 	</div>
 	</div>

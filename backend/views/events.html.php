@@ -2,11 +2,11 @@
 <table id="events-grid" class="admin-grid">
 <thead>
   <tr>
-    <th>Event Title</th>
-    <th>Event Start</th>
-    <th>Event Description</th>
-    <th>Event Location</th>
-    <th class="guests">Guests</th>
+    <th class="col-title"      >Event Title</th>
+    <th class="col-start-date" >Event Start</th>
+    <th class="col-description">Event Description</th>
+    <th class="col-location"   >Event Location</th>
+    <th class="col-guests"     >Guests</th>
     <th>Action</th>
   </tr>
 </head>
@@ -23,44 +23,56 @@
   <tr class="separator"></tr>
 
 <?php foreach($data as $d): ?>
-  <tr data-eventid="<?php echo $d['EventID']; ?>" title="Click row to edit">
+  <tr id="data-row-<?php echo $d['EventID']; ?>">
     <td><?php echo $d["Title"]; ?></td>
     <td>
       <?php
-        echo date("l", strtotime($d["StartDate"]))."<br />";
-        echo date("m/d/Y g:i", strtotime($d["StartDate"]));
+        echo date("Y/m/d g:i A", strtotime($d["StartDate"]));
+        echo "<br />(".date("l", strtotime($d["StartDate"])).")";
       ?>
     </td>
     <td><?php echo $d["Description"]; ?></td>
     <td><?php echo $d["Location"]; ?></td>
-    <td class="guests">
-      <ul>
+    <td>
+      <ul class="guests">
       <?php foreach($d["Guests"] as $g): ?>
-        <li><button class="button-remove">x</button><?php echo $g["FirstName"]." ".$g["LastName"]; ?></li>
+        <li><button class="button-remove-guest" data-eventid="<?php echo $d['EventID']; ?>" data-guestid="<?php echo $g['GuestID']; ?>">x</button><?php echo $g["FirstName"]." ".$g["LastName"]; ?></li>
       <?php endforeach; ?>
       </ul>
-      <button class="button-add-guest">Add Guest</button>
+      <div class="select-guest"></div>
+      <button class="button-add-guest" data-eventid="<?php echo $d['EventID']; ?>">Add Guest</button>
     </td>
-    <td><button class="button-delete">Delete</button></td>
+    <td><button class="button-edit" data-eventid="<?php echo $d['EventID']; ?>">Edit</button></td>
   </tr>
 <?php endforeach; ?>
 </tbody>
 </table>
 </form>
 
+<div id="select-guest-template">
+  <select id="select-guest">
+    <option value="-1">Select a guest</option>
+    <?php foreach($guests as $g): ?>
+      <option value="<?php echo $g['GuestID']; ?>"><?php echo $g['FirstName']." ".$g['LastName']; ?></option>
+    <?php endforeach; ?>
+  </select>
+</div>
+
 <div id="overlay"></div>
 
+<div id="event-edit-popup" class="edit-popup"></div>
 <script id="event-edit-template" type="text/x-jquery-tmpl">
-<div id="event-edit-popup" class="edit-popup">
+<form id="event-edit-form">
   <h3>Edit Event</h3>
-  <label  for="event-title">Title</label>
-  <input name="event-title" type="text" value="{{:Title}}" />
-  <label  for="event-start-date">Date/Time</label>
-  <input name="event-start-date" type="text" value="{{:StartDate}}" />
-  <label  for="event-description">Description</label>
-  <input name="event-description" type="text" value="{{:Description}}" />
-  <label  for="event-location">Location</label>
-  <input name="event-location" type="text" value="{{:Location}}" />
-  <button class="button-save">Save</button>
-</div>
+  <input type="hidden" name="_method" value="PUT" id="_method">
+  <label  for="Title"      >Title</label>
+  <input name="Title"       type="text" value="{{:Title}}" />
+  <label  for="StartDate"  >Date/Time</label>
+  <input name="StartDate"   type="text" value="{{:StartDate}}" />
+  <label  for="Description">Description</label>
+  <textarea name="Description">{{:Description}}</textarea>
+  <label  for="Location"   >Location</label>
+  <input name="Location"    type="text" value="{{:Location}}" />
+</form>
+<button class="button-save">Save</button>
 </script>

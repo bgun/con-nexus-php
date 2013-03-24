@@ -85,9 +85,16 @@ function feedback() {
 	} else {
 		$error = 'There was an error submitting feedback. Sorry!';
 	}
+
+  if(isset($_GET['cid'])) {
+    $cid = mysql_real_escape_string($_GET['cid']);
+  } else {
+		$error = 'Um, we encountered a really weird problem while submitting feedback. Like, whoa.';
+  }
+
 	$submitdate = date('Y-m-d H:i:s');
 	
-	$sql = "INSERT INTO feedback (Content, Meta, SubmitDate) VALUES ('$content', '$meta', '$submitdate')";
+	$sql = "INSERT INTO feedback (Content, Meta, SubmitDate, ConventionID) VALUES ('$content', '$meta', '$submitdate', $cid)";
 	if(!mysql_query($sql)) {
 		$error = mysql_error();
 		//$error = 'There was an database error submitting feedback. Sorry!';
@@ -136,14 +143,18 @@ function api() {
       $key = "EventID";
 			break;
 		case 'guest':
-			$data = $model->getGuest($cid, $id);
+			$data = $model->getGuest($id);
 			break;
 		case 'guests':
       $data = $model->getGuests($cid);
 			$key = "GuestID";
 			break;
 		default:
-			die("Invalid action.");
+      if($cid == null || !is_numeric($cid)) {
+			  die("Invalid action.");
+      } else {
+        $data = $model->getConvention($cid);
+      }
 			break;
 	}
 
@@ -203,12 +214,15 @@ function api_insert() {
         $success = $model->addNewEvent($cid, $obj);
         break;
       case 'guests':
-        $success = $model->addNewGuest($obj);
+        $success = $model->addNewGuest($cid, $obj);
+        break;
+      case 'addguest':
+        $success = $model->connectGuestToEvent($obj);
         break;
     }
 
     if($success) {
-      die('{"success": "true"}');
+      die('{"success": true}');
     } else {
       die('{"error": "Database write error."}');
     };
@@ -226,32 +240,82 @@ function api_update() {
     require_once("./_db.php");
     $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
 
-    $id = params('id');
-    if(!is_numeric($id)) {
+    $cid    = params('con');
+    $id     = params('id');
+    $action = params('action');
+
+    // All actions require an ID except updating convention data.
+    if(!is_numeric($id) && $action != 'update') {
       die('{"error": "Invalid ID."}');
     }
 
     $obj = array();
-    foreach($_PUT as $key => $value) {
+    foreach($_POST as $key => $value) {
       $obj[$key] = $value;
     }
 
     switch(params('action')) {
-      case 'events':
+      case 'event':
         $success = $model->updateEvent($id,$obj);
         break;
-      case 'guests':
+      case 'guest':
         $success = $model->updateGuest($id,$obj);
+        break;
+      case 'update':
+        $success = $model->touchConventionUpdatedDate($cid);
         break;
     }
 
     if($success) {
-      die('{"success": "true"}');
+      die(json_encode(array(
+        "success"=>true
+      )));
     } else {
       die('{"error": "Database write error."}');
     };
   }
 }
+
+dispatch_delete('/api/:con/:action/:id', 'api_delete');
+function api_delete() {
+  // Valid session id required to write. TODO: security for remote calls
+  if(!isset($_SESSION['id'])) {
+    die('{ "error": "Access denied." }');
+  } else {
+    require_once("./model.php");
+    $model = new Model();
+    require_once("./_db.php");
+    $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
+
+    /*
+    $id = params('id');
+    if(!is_numeric($id)) {
+      die('{"error": "Invalid ID."}');
+    }
+    */
+    $obj = array();
+    foreach($_POST as $key => $value) {
+      $obj[$key] = $value;
+    }
+
+    switch(params('action')) {
+      case 'removeguest':
+        $success = $model->removeGuestFromEvent($obj);
+        break;
+    }
+
+    if($success) {
+      die(json_encode(array(
+        "success"=>true
+      )));
+    } else {
+      die('{"error": "Database write error."}');
+    };
+  }
+}
+
+
+/* Admin pages */
 
 dispatch('/admin/home', 'adminHome');
 function adminHome() {
@@ -279,6 +343,9 @@ function adminHome() {
       }
     }
 
+    set('convention', array(
+      'ConventionID'=>0
+    ));
     set('data', $output);
     set('user', $_SESSION);
 
@@ -317,6 +384,9 @@ function adminAction() {
           $data[$key]["Guests"] = $gs;
         }
         break;
+      case 'feedback':
+        $data = $model->getFeedback($cid);
+        break;
       case 'guest':
         $data = $model->getGuest($cid, $id);
         break;
@@ -327,9 +397,12 @@ function adminAction() {
         die("Invalid action.");
         break;
     }
-    set('data',$data); // data for table grid
+
+    set('action',     ucfirst($action));
     set('convention', $model->getConvention($cid));
-    set('user', $_SESSION);
+    set('data',       $data); // data for table grid
+    set('guests',     $model->getGuests($cid));
+    set('user',       $_SESSION);
 
     $model->closeDB();
 

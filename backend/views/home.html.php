@@ -9,6 +9,7 @@
     <td><?php echo $d["Description"]; ?></td>
     <td><?php echo $d["Website"]; ?></td>
     <td><?php echo $d["Twitter"]; ?></td>
+    <td><button class="button-update" data-convention-id="<?php echo $d['ConventionID']; ?>">Push Updates to Mobile Apps</button></td>
   </tr>
 <?php endforeach; ?>
 </tbody>

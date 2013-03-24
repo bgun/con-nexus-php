@@ -1,14 +1,47 @@
+// function namespace
 var App = {};
+
+// all convention data
+var Model = {
+  cid: Convention.ConventionID,
+  events: {},
+  guests: {}
+};
+
+// caching jQuery objects for speed
+var DomCache = {};
+
+var lsKeys = {
+  todo: 'todo-list',
+  events: 'events-data',
+  guests: 'guests-data',
+  lastUpdate: 'last-update'
+};
 var daysofweek = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-var tkey = 'todo5';
 var feedbackSubject = null;
+var feedbackId = null;
 var scheduleRendered = false;
-var Model = {};
+var RootDomain = 'con-nexus.com';
 
 // JQM options
 $(document).bind("mobileinit", function(){
   $.mobile.defaultPageTransition = 'none';
 });
+
+$(document).bind("orientationchange", resizeStyles);
+
+function resizeStyles() {
+  var $t = $('body');
+  if($t.height() > $t.width()) {
+    $('div.ui-body-c').css({
+      backgroundSize: "auto 100%"
+    });
+  } else {
+    $('div.ui-body-c').css({
+      backgroundSize: "100% auto"
+    });
+  }
+}
 
 function parseDate(input) {
   var parts = input.match(/(\d+)/g);
@@ -115,12 +148,9 @@ App.Notify = function(msg, callback, title, buttons) {
   }
 }
 
-if( localStorage[tkey] == null ) {
-  localStorage[tkey] = '';
-}
 function getToDo() {
   // returns an array of all the user's ToDo events
-  var ts = ''+localStorage[tkey];
+  var ts = ''+localStorage[lsKeys.todo];
   var ta = ts.split(',');
   ta = _.compact(ta);
   return ta;
@@ -131,14 +161,14 @@ function addToDo(eid) {
     var a = getToDo();
     a.push(eid);
     App.Notify("Event added.", null, "My ToDo", "Awesome!");
-    localStorage[tkey] = a;
+    localStorage[lsKeys.todo] = a;
   } else {
     App.Notify("This event is already in your to-do list.", null, "My ToDo", "My bad.");
   }
 }
 function searchToDo(eid) {
   // returns index of event or -1 if not found
-  var tempStr = localStorage[tkey];
+  var tempStr = localStorage[lsKeys.todo];
   var tempArr = tempStr.split(',');
   var r = $.inArray(eid, tempArr)
   return r;
@@ -149,7 +179,7 @@ function removeToDo(eid) {
   var a = getToDo();
   if(i > -1) {
     a.splice(i, 1);
-    localStorage[tkey] = a;
+    localStorage[lsKeys.todo] = a;
     if(a.length > 0) {
       renderToDo();
     } else {
@@ -185,8 +215,6 @@ function renderToDo() {
   $('#todo').trigger('updatelayout');
   $('#todo-list').html(html).listview('refresh').trigger('updatelayout');
 
-  console.log(html);
-  
   if($('#todo-list li').length > 1) {
     $('#todo-list li:first').addClass('ui-corner-top');
     $('#todo-list li:last' ).addClass('ui-corner-bottom');
@@ -195,48 +223,20 @@ function renderToDo() {
   }
 }
 function clearToDo() {
-  localStorage[tkey] = '';
+  localStorage[lsKeys.todo] = '';
   $('#todo-list').html('');
   $('.todo-empty').show();
   $('.todo-clear').hide();
 }
 
-/* Page init functions */
 
-function init() {
-
-  // caching ye olde selectors
-  var $eventDetail = $('#event-detail');
-  var $eventDetailContent = $('#event-detail-content');
-
-  var $feedback = $('#feedback');
-  var $feedbackForm = $('#feedback-form');
-
-  var $guests = $('#guests');
-  var $guestDetail = $('#guest-detail');
-  var $guestDetailContent = $('#guest-detail-content');
-  var $guestsList = $('#guests-list');
-
-  var $map = $('#map');
-  var $mapImage = $('#map-image');
-  var $mapZoomIn = $('#map-zoom-in');
-  var $mapZoomOut = $('#map-zoom-out');
-
-  var $todo = $('#todo');
-
-  var $twitter = $('#twitter');
-  var $tweetsList = $('#tweets-list');
-
- 
-  buildSchedule();
-  $guestsList.html( renderGuests() ).trigger('updatelayout');
-
-  $('.guest-detail-link').live('click',function(e) {
+$.fn.bindGuestDetailLinks = function() {
+  $(this).click(function(e) {
     // when a list item is selected, render the new guest detail page,
     // remove the old one from DOM, append the new one and switch.
     e.preventDefault();
     Model.guestDetail = $(this).attr('data-guestid');
-    
+   
     var d = Model.guests.items[Model.guestDetail];
     if(d.EventList) {
       d.GuestEvents = [];
@@ -246,16 +246,24 @@ function init() {
           d.GuestEvents.push(Model.events.items[tmp[i]]);
         }
       }
+      d.GuestEvents = _.sortBy(d.GuestEvents, function(n) {
+        return n.StartDate;
+      });
     }
     var html = $('#guest-detail-template').render(d);
-    $guestDetailContent.empty().html(html);
+    DomCache.$guestDetailContent.empty().html(html);
 
     // switch to the new page, then JQM-enhance it  
     $.mobile.changePage('#guest-detail');
-    $guestDetailContent.trigger('create');
-  });
+    DomCache.$guestDetailContent.trigger('create');
 
-  $('.event-detail-link').live('click', function(e) {
+    // bind events on the new page
+    DomCache.$guestDetailContent.find('.event-detail-link').bindEventDetailLinks();
+  });
+};
+
+$.fn.bindEventDetailLinks = function() {
+  $(this).click(function(e) {
     e.preventDefault();
     Model.eventDetail = $(this).attr('data-eventid');
     
@@ -271,44 +279,95 @@ function init() {
     }
       
     var html = $('#event-detail-template').render(d);
-    $eventDetailContent.empty().html(html);
+    DomCache.$eventDetailContent.empty().html(html);
 
     if(_.include(getToDo(), String(Model.eventDetail))) {
-      $eventDetailContent.find('.todo-add').addClass('ui-disabled');
+      DomCache.$eventDetailContent.find('.todo-add').addClass('ui-disabled');
     } else {
-      $eventDetailContent.find('.todo-add').removeClass('ui-disabled');
+      DomCache.$eventDetailContent.find('.todo-add').removeClass('ui-disabled');
     }
 
     // switch to the new page, then JQM-enhance it  
     $.mobile.changePage('#event-detail');	
-    $eventDetail.trigger('create');
-  });
+    DomCache.$eventDetail.trigger('create');
 
-  $mapZoomIn.click(function(e) {
+    // bind events on the new page
+    DomCache.$eventDetailContent.find('.guest-detail-link').bindGuestDetailLinks();
+    DomCache.$eventDetailContent.find('.todo-add').click(function(e){
+      e.preventDefault();
+      var id = $(this).attr('data-eventid');
+      addToDo(id);
+      $(this).addClass('ui-disabled');
+      renderToDo();
+    });
+  });
+};
+
+
+/* Page init functions */
+
+function init(useLocalStorage) {
+
+  resizeStyles();
+
+  if(useLocalStorage) {
+    Model.events = JSON.parse(localStorage[lsKeys.events]);
+    Model.guests = JSON.parse(localStorage[lsKeys.guests]);
+  }
+
+  // caching ye olde selectors
+  DomCache.$eventDetail = $('#event-detail');
+  DomCache.$eventDetailContent = $('#event-detail-content');
+
+  DomCache.$feedback = $('#feedback');
+  DomCache.$feedbackForm = $('#feedback-form');
+
+  DomCache.$guests = $('#guests');
+  DomCache.$guestDetail = $('#guest-detail');
+  DomCache.$guestDetailContent = $('#guest-detail-content');
+  DomCache.$guestsList = $('#guests-list');
+
+  DomCache.$map = $('#map');
+  DomCache.$mapImage = $('#map-image');
+  DomCache.$mapZoomIn = $('#map-zoom-in');
+  DomCache.$mapZoomOut = $('#map-zoom-out');
+
+  DomCache.$todo = $('#todo');
+
+  DomCache.$twitter = $('#twitter');
+  DomCache.$tweetsList = $('#tweets-list');
+ 
+  buildSchedule();
+  DomCache.$guestsList.html( renderGuests() ).trigger('updatelayout');
+
+  $('#guests').find('.guest-detail-link').bindGuestDetailLinks();
+  $('.schedule').find('.event-detail-link').bindEventDetailLinks();
+
+  DomCache.$mapZoomIn.click(function(e) {
     e.preventDefault();
-    var cw = $mapImage.outerWidth();
-    $mapImage.css({
-      width: cw * 1.2
+    var cw = DomCache.$mapImage.outerWidth();
+    DomCache.$mapImage.css({
+      width: cw * 1.1
     });
   });
 
-  $mapZoomOut.click(function(e) {
+  DomCache.$mapZoomOut.click(function(e) {
     e.preventDefault();
-    var cw = $mapImage.outerWidth();
-    $mapImage.css({
-      width: cw * 0.8
+    var cw = DomCache.$mapImage.outerWidth();
+    DomCache.$mapImage.css({
+      width: cw * 0.9
     });
   });
 
-  $twitter.bind('pageinit', function(e) {
-    $tweetsList.tweet({
+  DomCache.$twitter.bind('pageinit', function(e) {
+    DomCache.$tweetsList.tweet({
       avatar_size: 48,
       count: 20,
       query: Convention.Twitter,
       loading_text: "searching twitter...",
       template: "{avatar}{user}{text}{time}"
     });
-    $tweetsList.on('click','a',function(e) {
+    DomCache.$tweetsList.on('click','a',function(e) {
       e.preventDefault();
       App.Notify('Clicking on links in tweets has been disabled for now. Sorry!', null, 'Drat!');
     });
@@ -317,22 +376,14 @@ function init() {
 
   /* Todo page */
 
-  $('.todo-add').live('click', function(e){
-    e.preventDefault();
-    var id = $(this).attr('data-eventid');
-    addToDo(id);
-    $(this).addClass('ui-disabled');
-    renderToDo();
-  });
-
-  $todo.bind('pageinit', function() {
+  DomCache.$todo.bind('pageinit', function() {
     renderToDo();  
-    $todo.on('click', '.todo-remove', function(e){
+    DomCache.$todo.on('click', '.todo-remove', function(e){
       e.preventDefault();
       var id = $(this).attr('data-eventid');
       removeToDo(id);
     });
-    $todo.on('click', '.todo-clear', function(e){
+    DomCache.$todo.on('click', '.todo-clear', function(e){
       e.preventDefault();
       navigator.notification.confirm("Are you sure you want to delete all items from your to-do list?", function(i){
         if(i == 1) {
@@ -345,37 +396,38 @@ function init() {
 
   /* Feedback page */
 
-  $('#dashboard,#event-detail').on('click, .feedback-link',function(e) {
+  DomCache.$feedbackForm.trigger('create');
+  $('#dashboard,#event-detail').on('click','.feedback-link',function(e) {
     feedbackSubject = "";
     if($(this).hasClass('dashboard')) {
       feedbackSubject = 'General Feedback for ' + Convention.Name;
-      $('#rating').hide();
     } else {
-      feedbackSubject = 'Feedback for "' + $eventDetail.find('h3').text() + '"';
-      $('#rating').show();
+      feedbackSubject = 'Feedback for "' + DomCache.$eventDetailContent.find('h3').text() + '"';
     }
   });
-  $feedbackForm.find('.submit').click(function(e) {
+  DomCache.$feedbackForm.on('click','.submit',function(e) {
     e.preventDefault();
+    e.stopPropagation();
     $(this).addClass('ui-disabled');
-    var content = $feedbackForm.find('.content').val();
-    var rating  = $feedback.find('input:radio[name=rating]:checked').val();
-    var meta    = feedbackSubject + " [cid "+Convention.ConventionID+", rating "+rating+"]";
+    var content = DomCache.$feedbackForm.find('.content').val();
+    var rating  = DomCache.$feedback.find('input:radio[name=rating]:checked').val();
+    var meta    = "["+rating+"] "+feedbackSubject;
     $.ajax({
-      url: 'http://con-nexus.com/feedback',
+      url: 'http://'+RootDomain+'/feedback',
       method: 'GET',
       dataType: 'jsonp',
       jsonp: 'callback',
       data: {
         content : content,
-        meta    : meta
+        meta    : meta,
+        cid     : Convention.ConventionID
       },
       success: function(resp) {
-        $feedbackForm.find('.submit').removeClass('ui-disabled');
-        $feedbackForm.find('.content').val('');
-        $feedbackForm.find('.meta').val('');
-        $feedback.find('input:radio').prop('checked',false);
-        $feedback.find('.ui-btn').removeClass('ui-btn-active ui-radio-on');
+        DomCache.$feedbackForm.find('.submit').removeClass('ui-disabled');
+        DomCache.$feedbackForm.find('.content').val('');
+        DomCache.$feedbackForm.find('.meta').val('');
+        DomCache.$feedback.find('input:radio').prop('checked',false);
+        DomCache.$feedback.find('.ui-btn').removeClass('ui-btn-active ui-radio-on');
         if(resp.status == 'OK') {
           App.Notify("Your feedback has been submitted.", null, "Thanks!");
         } else {
@@ -387,44 +439,94 @@ function init() {
       }
     });
   });
-  $feedback.bind('pagebeforeshow', function() {
-    $feedback.find('h3').text(feedbackSubject);
+  DomCache.$feedback.bind('pagebeforeshow', function() {
+    DomCache.$feedback.find('h3').text(feedbackSubject);
   });
+
+  $('#loading').hide();
+
 } // end init
 
 function dataLoadError() {
   App.Notify('There was a problem loading events and guests data.');
 }
 
-$(function() {
-  var cid = Convention.ConventionID;
-
-  // Load events and guests; when both are loaded, call init
-
-  document.addEventListener("deviceready", function() {
-  }, false);
-
+function loadAppData(callback) {
+  console.log('Loading new data from server'); 
+  var ts = Math.round((new Date()).getTime() / 1000);
+  Model.events = null;
+  Model.guests = null;
   $.ajax({
-    url: 'http://con-nexus.com/api/'+cid+'/events',
+    url: 'http://'+RootDomain+'/api/'+Model.cid+'/events',
     type: 'GET',
     dataType: 'jsonp',
     success: function(data) {
       Model.events = data;
+      localStorage[lsKeys.events] = JSON.stringify(Model.events);
       if(Model.guests) {
-        init();
+        localStorage[lsKeys.lastUpdate] = ts;
+        callback.call();
       }
     }
   });
   $.ajax({
-    url: 'http://con-nexus.com/api/'+cid+'/guests',
+    url: 'http://'+RootDomain+'/api/'+Model.cid+'/guests',
     type: 'GET',
     dataType: 'jsonp',
     success: function(data) {
       Model.guests = data;
+      localStorage[lsKeys.guests] = JSON.stringify(Model.guests);
       if(Model.events) {
-        init();
+        localStorage[lsKeys.lastUpdate] = ts;
+        callback.call();
       }
     } 
   });
+}
 
+$(function() {
+  document.addEventListener("deviceready", function() {
+
+    if(localStorage[lsKeys.todo] == null) {
+      localStorage[lsKeys.todo] = '';
+    }
+    if(navigator.network) {
+      // Phonegap is running, try to get connection
+      var nw = navigator.network.connection.type;
+
+      if(nw == Connection.WIFI || nw == Connection.CELL_3G || nw == Connection.CELL_4G) {
+        // Got a connection - check for updates
+        console.log("Checking for updates...");
+        $.ajax({
+          url: 'http://'+RootDomain+'/api/'+Model.cid,
+          method: 'GET',
+          dataType: 'jsonp',
+          success: function(resp) {
+            if(resp.UpdateUT > localStorage[lsKeys.lastUpdate]) {
+              $('#loading').find('p').text('New updates found! Downloading...');
+              loadAppData(init);
+            } else {
+              init(true);
+            }
+          },
+          error: function() {
+            App.Notify('Sorry, the update server could not be reached. Please restart the app and try again.');
+          }
+        });
+      } else {
+        // Phonegap is running, but no network - can't check for updates
+        if(localStorage[lsKeys.events] && localStorage[lsKeys.guests]) {
+          init(true);
+        } else {
+          //loadAppData(init);
+          App.Notify('No network connection available! If this is your first time using the app, please make sure your device has an Internet connection and restart.');
+        }
+      }
+    } else {
+      // No Phonegap, must be a mobile browser. Download latest updates and go.
+      $('#loading').find('p').text('Loading convention data...');
+      loadAppData(init);
+    }
+
+  }, false); // end deviceready 
 });
