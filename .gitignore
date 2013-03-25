@@ -2,6 +2,8 @@
 _backup
 _datafiles
 _workfiles
+_old
 backend/_db.php
 *.swp
 /app/con_assets
+_db.php

@@ -14,16 +14,16 @@ if(isset($_GET['save']) && $_GET['save'] == true) {
 
 // connect to db
 include("_db.php");
-$link = mysql_connect($dbserver, $dbuser, $dbpass) or die('Cannot connect to the DB');
+$db = new mysqli($dbserver, $dbuser, $dbpass, $dbname) or die('Cannot connect to the DB');
 
-mysql_select_db($dbname, $link) or die('Cannot select the DB');
+//mysqli_select_db($dbname, $link) or die('Cannot select the DB');
 
 // get convention info
 $query = "SELECT ConventionID, Name, StartDate, EndDate, Location, Website, Description, Twitter, Tagline, Icon, Map FROM conventions WHERE ConventionID = ".$cid." ORDER BY StartDate";
-$result = mysql_query($query,$link) or die('Errant query:  '.$query);
+$result = $db->query($query) or die('Errant query:  '.$query);
 $conventions = array();
-if(mysql_num_rows($result)) { 
-	while($temprow = mysql_fetch_assoc($result)) { 
+if(mysqli_num_rows($result)) { 
+	while($temprow = mysqli_fetch_assoc($result)) { 
 		$conventions[] = $temprow;
 	}
 }
@@ -345,7 +345,7 @@ if(mysql_num_rows($result)) {
 
 <!-- clean up -->
 <?php
-	mysql_close($link);
+	mysqli_close($db);
 
   if(isset($_GET['save']) && $_GET['save'] == true) {
   	$outputHtml = ob_get_contents(); 
