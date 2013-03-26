@@ -459,7 +459,7 @@ function loadAppData(callback) {
   $.ajax({
     url: 'http://'+RootDomain+'/api/'+Model.cid+'/events',
     type: 'GET',
-    dataType: 'jsonp',
+    dataType: 'json',
     success: function(data) {
       Model.events = data;
       localStorage[lsKeys.events] = JSON.stringify(Model.events);
@@ -485,7 +485,10 @@ function loadAppData(callback) {
 }
 
 $(function() {
-  document.addEventListener("deviceready", function() {
+  console.log("Waiting for device");
+  //document.addEventListener("deviceready", function() {
+
+    console.log("Device ready!");
 
     if(localStorage[lsKeys.todo] == null) {
       localStorage[lsKeys.todo] = '';
@@ -528,5 +531,5 @@ $(function() {
       loadAppData(init);
     }
 
-  }, false); // end deviceready 
+  //}, false); // end deviceready 
 });

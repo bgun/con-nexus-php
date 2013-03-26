@@ -70,7 +70,6 @@ function feedback() {
 	$link = mysql_connect($dbserver, $dbuser, $dbpass) or die('Cannot connect to the DB');
 	mysql_select_db($dbname,$link) or die('Cannot select the DB: '.mysql_error());
 	
-	$callback = isset($_GET['callback']) ? $_GET['callback'] : false;	
 	$error   = '';
 	$content = '';
 	$meta    = '';
@@ -105,13 +104,10 @@ function feedback() {
 		"error"  => $error
 	);
 
-	if($callback) {
-		header('Content-type: text/javascript');
-		echo $callback . '(' . json_encode($output) . ')';
-	} else {
-		header('Content-type: application/json');
-		echo json_encode($output);
-	}
+  // CORS
+  header('Access-Control-Allow-Origin: *');
+  header('Content-type: text/json');
+	echo json_encode($output);
 	
 	mysql_close($link);
 	die();
@@ -124,8 +120,6 @@ function api() {
   require_once("./_db.php");
   $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
 
-	// jsonp callback
-	$callback = isset($_GET['callback']) ? $_GET['callback'] : false;
 	$action   = params('action');
   $cid      = params('con');
   $id       = params('id');
@@ -177,14 +171,11 @@ function api() {
       "error"=>"No results found."
     ));
   }
-  // Callback for JSONP
-  if($callback) {
-    header('Content-type: text/javascript');
-    echo $callback . '('.$json_resp.');';
-  } else {
-    header('Content-type: application/json');
-    echo $json_resp;
-  }
+
+  // CORS
+  header('Access-Control-Allow-Origin: *');
+  header('Content-type: text/json');
+  echo $json_resp;
 
   // Cleanup
   $model->closeDB();
@@ -194,6 +185,10 @@ function api() {
 dispatch_post('/api/:con/:action', 'api_insert');
 function api_insert() {
   // Valid session id required to write. TODO: security for remote calls
+
+  header('Access-Control-Allow-Origin: *');
+  header('Content-type: text/json');
+
   if(!isset($_SESSION['id'])) {
     die('{ "error": "Access denied." }');
   } else {
@@ -231,6 +226,9 @@ function api_insert() {
 
 dispatch_put('/api/:con/:action/:id', 'api_update');
 function api_update() {
+  header('Access-Control-Allow-Origin: *');
+  header('Content-type: text/json');
+
   // Valid session id required to write. TODO: security for remote calls
   if(!isset($_SESSION['id'])) {
     die('{ "error": "Access denied." }');
@@ -278,6 +276,9 @@ function api_update() {
 
 dispatch_delete('/api/:con/:action/:id', 'api_delete');
 function api_delete() {
+  header('Access-Control-Allow-Origin: *');
+  header('Content-type: text/json');
+
   // Valid session id required to write. TODO: security for remote calls
   if(!isset($_SESSION['id'])) {
     die('{ "error": "Access denied." }');
