@@ -1,4 +1,3 @@
-
 (function($) {
 
   $.fn.clickToRemoveGuest = function() {
@@ -109,8 +108,9 @@ $(function() {
   });
   $eventsGrid.find('.button-add-guest').click(function(e) {
     e.preventDefault();
+    e.stopPropagation();
     var $t = $(this);
-    var eid = $(this).attr('data-eventid');
+    var eid = $t.attr('data-eventid');
     var cid = ConventionID;
     var $row = $('#data-row-'+eid);
     var $sg = $row.find('.select-guest');
