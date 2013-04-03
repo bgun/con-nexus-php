@@ -472,7 +472,7 @@ function loadAppData(callback) {
   $.ajax({
     url: 'http://'+RootDomain+'/api/'+Model.cid+'/guests',
     type: 'GET',
-    dataType: 'jsonp',
+    dataType: 'json',
     success: function(data) {
       Model.guests = data;
       localStorage[lsKeys.guests] = JSON.stringify(Model.guests);

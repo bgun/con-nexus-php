@@ -10,6 +10,7 @@ function configure() {
 
 function before($route) {
   //header("X-LIM-route-function: ".$route['callback']);
+  header('Access-Control-Allow-Origin: *');
   layout('default_layout.php');
 }
 

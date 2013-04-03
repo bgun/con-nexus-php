@@ -152,8 +152,11 @@ class Model {
     $query .= " GROUP BY GuestID ORDER BY G.FirstName";
     */
     $query  = "SELECT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website";
+    $query .= ",GROUP_CONCAT(DISTINCT LEG.EventID) AS EventList";
     $query .= " FROM guests G";
+    $query .= " LEFT JOIN linkeventsguests LEG ON G.GuestID = LEG.GuestID";
     $query .= " WHERE G.ConventionID = $cid";
+    $query .= " GROUP BY GuestID";
     $query .= " ORDER BY G.FirstName";
 	  $result = mysql_query($query,$this->link) or die('Errant query:  '.$query.'<br /><br />'.mysql_error());
     $output = array();
