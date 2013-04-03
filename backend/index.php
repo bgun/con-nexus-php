@@ -213,7 +213,7 @@ function api_insert() {
         $success = $model->addNewEvent($cid, $obj);
         break;
       case 'guests':
-        $success = $model->addNewGuest($obj);
+        $success = $model->addNewGuest($cid, $obj);
         break;
     }
 

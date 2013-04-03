@@ -122,15 +122,12 @@ class Model {
 
   function getGuest($cid, $id) {
     if(!is_numeric($id) || $id < 0) die("Invalid ID. Error 1");
-    $query  = "SELECT DISTINCT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website, G.GuestID";//, LC.ConventionRole, LC.ConventionID";
+    $query  = "SELECT DISTINCT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website";//, LC.ConventionRole, LC.ConventionID";
     $query .= ",GROUP_CONCAT(DISTINCT LEG.EventID) AS EventList";
     $query .= " FROM guests G";
-    $query .= " LEFT JOIN linkeventsguests L ON G.GuestID = L.GuestID";
-    $query .= " LEFT JOIN events E ON E.EventID = L.EventID";
-    $query .= " LEFT JOIN conventions C ON C.ConventionID = E.ConventionID";
-    //$query .= " LEFT JOIN linkconventionsguests LC ON LC.ConventionID = C.ConventionID";
     $query .= " LEFT JOIN linkeventsguests LEG ON G.GuestID = LEG.GuestID";
-    $query .= " WHERE C.ConventionID = $cid AND E.EventID = $id";
+    //$query .= " LEFT JOIN events E ON E.EventID = LEG.EventID";
+    $query .= " WHERE G.ConventionID = $cid AND G.GuestID = $id";
     $query .= " GROUP BY GuestID";
 	  $result = mysql_query($query,$this->link) or die('Errant query:  '.$query.'<br /><br />'.mysql_error());
     if(mysql_num_rows($result) === 1) {
@@ -142,6 +139,7 @@ class Model {
 
   function getGuests($cid) {
     if(!is_numeric($cid)) die("Invalid ID. Error 0");
+    /*
     $query  = "SELECT DISTINCT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website, G.GuestID";//, LC.ConventionRole, LC.ConventionID";
     $query .= ",GROUP_CONCAT(DISTINCT LEG.EventID) AS EventList";
     $query .= " FROM guests G";
@@ -152,6 +150,11 @@ class Model {
     $query .= " LEFT JOIN linkeventsguests LEG ON G.GuestID = LEG.GuestID";
     $query .= " WHERE C.ConventionID = $cid";
     $query .= " GROUP BY GuestID ORDER BY G.FirstName";
+    */
+    $query  = "SELECT G.GuestID, G.FirstName, G.LastName, G.Bio, G.Website";
+    $query .= " FROM guests G";
+    $query .= " WHERE G.ConventionID = $cid";
+    $query .= " ORDER BY G.FirstName";
 	  $result = mysql_query($query,$this->link) or die('Errant query:  '.$query.'<br /><br />'.mysql_error());
     $output = array();
     if(mysql_num_rows($result) > 0) { 
@@ -193,14 +196,14 @@ class Model {
     return mysql_query($query);
   }
 
-  function addNewGuest($obj) {
+  function addNewGuest($cid, $obj) {
     $guest_first   = $obj["FirstName"];
     $guest_last    = $obj["LastName"];
     $guest_bio     = $obj["Bio"];
     $guest_website = $obj["Website"];
 
-    $query  = "INSERT INTO guests (FirstName, LastName, Bio, Website) VALUES (";
-    $query .= "'$guest_first','$guest_last','$guest_bio','$guest_website')";
+    $query  = "INSERT INTO guests (ConventionID, FirstName, LastName, Bio, Website) VALUES (";
+    $query .= "$cid,'$guest_first','$guest_last','$guest_bio','$guest_website')";
 
     return mysql_query($query);
   }
@@ -224,16 +227,17 @@ class Model {
   }
 
   function updateGuest($id, $obj) {
-    $guest_id      = $obj["GuestID"];
     $guest_first   = $obj["FirstName"];
     $guest_last    = $obj["LastName"];
     $guest_bio     = $obj["Bio"];
     $guest_website = $obj["Website"];
 
-    /*
-    $query  = "INSERT INTO guests (FirstName, LastName, Bio, Website) VALUES (";
-    $query .= "'$guest_first','$guest_last','$guest_bio','$guest_website')";
-    */
+    $query  = "UPDATE guests SET";
+    $query .= " FirstName = '$guest_first'";
+    $query .= ", LastName = '$guest_last'";
+    $query .= ", Bio = '$guest_bio'";
+    $query .= ", Website = '$guest_website'";
+    $query .= " WHERE GuestID = $id";
 
     return mysql_query($query);
   }
