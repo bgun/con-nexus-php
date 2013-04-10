@@ -68,20 +68,21 @@ while (!feof($fp)) {
   echo "1";
 	$i++;
 
-  $delimiter = "\t";
+  $delimiter = ",";
   $data = fgetcsv($fp, 2048, $delimiter);
 	$dateFormat = 'Y/m/d G:i:s';	
 	
-	if(count($data) < 5) { // need all 5 columns to be present
+	if(count($data) < 6) { // need all 5 columns to be present
     print_r($data);
 		die("<h3>ERROR: Row $i is malformed: ".count($data)." rows</h3>");
 	}	
 
-	$title       = mysql_real_escape_string(trim($data[0]));
-	$description = mysql_real_escape_string(trim($data[1]));
-	$guests      = explode(",",mysql_real_escape_string(trim($data[2])));
-	$startdate   = date($dateFormat, strtotime($data[3]));
-	$location    = mysql_real_escape_string(trim($data[4]));
+	$track       = mysql_real_escape_string(trim($data[0]));
+	$title       = mysql_real_escape_string(trim($data[1]));
+	$description = mysql_real_escape_string(trim($data[2]));
+	$guests      = explode(",",mysql_real_escape_string(trim($data[3])));
+	$startdate   = date($dateFormat, strtotime($data[4]));
+	$location    = mysql_real_escape_string(trim($data[5]));
 
 	$sql  = "INSERT INTO events (ConventionID, Title, Description, StartDate, Location)";
 	$sql .= " VALUES ($cid, '$title', '$description', '$startdate', '$location')";

@@ -326,6 +326,7 @@ function adminAction() {
           $gs = $model->getGuestsForEvent($data[$key]["EventID"]);
           $data[$key]["Guests"] = $gs;
         }
+        set('guests', $model->getGuests($cid));
         break;
       case 'guest':
         $data = $model->getGuest($cid, $id);
