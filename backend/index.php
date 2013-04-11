@@ -126,29 +126,33 @@ function api() {
   $cid      = params('con');
   $id       = params('id');
 
-	switch($action) {
-		case 'list':
-      $data = $model->getConventions();
-      $key = "ConventionID";
-			break;
-    case 'event':
-      $data = $model->getEvent($cid, $id);
-      break;
-		case 'events':
-      $data = $model->getEvents($cid);
-      $key = "EventID";
-			break;
-		case 'guest':
-			$data = $model->getGuest($cid, $id);
-			break;
-		case 'guests':
-      $data = $model->getGuests($cid);
-			$key = "GuestID";
-			break;
-		default:
-			die("Invalid action.");
-			break;
-	}
+  if(!$action) {
+    $data = $model->getConvention($cid);
+  } else {
+    switch($action) {
+      case 'list':
+        $data = $model->getConventions();
+        $key = "ConventionID";
+        break;
+      case 'event':
+        $data = $model->getEvent($cid, $id);
+        break;
+      case 'events':
+        $data = $model->getEvents($cid);
+        $key = "EventID";
+        break;
+      case 'guest':
+        $data = $model->getGuest($cid, $id);
+        break;
+      case 'guests':
+        $data = $model->getGuests($cid);
+        $key = "GuestID";
+        break;
+      default:
+        die("Invalid action.");
+        break;
+    }
+  }
 
   // Construct final object
   $count = count($data);
