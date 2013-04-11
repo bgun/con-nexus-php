@@ -486,7 +486,7 @@ function loadAppData(callback) {
 
 $(function() {
   console.log("Waiting for device");
-  //document.addEventListener("deviceready", function() {
+  document.addEventListener("deviceready", function() {
 
     console.log("Device ready!");
 
@@ -503,7 +503,7 @@ $(function() {
         $.ajax({
           url: 'http://'+RootDomain+'/api/'+Model.cid,
           method: 'GET',
-          dataType: 'jsonp',
+          dataType: 'json',
           success: function(resp) {
             if(resp.UpdateUT > localStorage[lsKeys.lastUpdate]) {
               $('#loading').find('p').text('New updates found! Downloading...');
@@ -531,5 +531,5 @@ $(function() {
       loadAppData(init);
     }
 
-  //}, false); // end deviceready 
+  }, false); // end deviceready 
 });

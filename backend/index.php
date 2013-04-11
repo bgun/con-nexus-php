@@ -81,7 +81,6 @@ function feedback() {
 	$link = mysql_connect($dbserver, $dbuser, $dbpass) or die('Cannot connect to the DB');
 	mysql_select_db($dbname,$link) or die('Cannot select the DB: '.mysql_error());
 	
-	$callback = isset($_GET['callback']) ? $_GET['callback'] : false;	
 	$error   = '';
 	$content = '';
 	$meta    = '';
@@ -109,13 +108,8 @@ function feedback() {
 		"error"  => $error
 	);
 
-	if($callback) {
-		header('Content-type: text/javascript');
-		echo $callback . '(' . json_encode($output) . ')';
-	} else {
-		header('Content-type: application/json');
-		echo json_encode($output);
-	}
+  header('Content-type: application/json');
+  echo json_encode($output);
 	
 	mysql_close($link);
 	die();
@@ -128,15 +122,13 @@ function api() {
   require_once("./_db.php");
   $model->connectDB($dbserver, $dbname, $dbuser, $dbpass);
 
-	// jsonp callback
-	$callback = isset($_GET['callback']) ? $_GET['callback'] : false;
 	$action   = params('action');
   $cid      = params('con');
   $id       = params('id');
 
 	switch($action) {
 		case 'list':
-      $data = $model->getConventionsList();
+      $data = $model->getConventions();
       $key = "ConventionID";
 			break;
     case 'event':
@@ -177,14 +169,8 @@ function api() {
       "error"=>"No results found."
     ));
   }
-  // Callback for JSONP
-  if($callback) {
-    header('Content-type: text/javascript');
-    echo $callback . '('.$json_resp.');';
-  } else {
-    header('Content-type: application/json');
-    echo $json_resp;
-  }
+  header('Content-type: application/json');
+  echo $json_resp;
 
   // Cleanup
   $model->closeDB();
