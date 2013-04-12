@@ -99,7 +99,7 @@ function buildSchedule() {
 			}
 		}
 	} else {
-		alert("Error: no events available");
+		App.Notify("Error: no events available");
 	}
 	var html = $('#schedule-template').render(output);
   $('.schedule').trigger('updatelayout');
@@ -150,7 +150,7 @@ App.Notify = function(msg, callback, title, buttons) {
 
 function getToDo() {
   // returns an array of all the user's ToDo events
-  var ts = ''+localStorage[lsKeys.todo];
+  var ts = ''+localStorage.getItem(lsKeys.todo);
   var ta = ts.split(',');
   ta = _.compact(ta);
   return ta;
@@ -161,14 +161,14 @@ function addToDo(eid) {
     var a = getToDo();
     a.push(eid);
     App.Notify("Event added.", null, "My ToDo", "Awesome!");
-    localStorage[lsKeys.todo] = a;
+    localStorage.setItem(lsKeys.todo, a);
   } else {
     App.Notify("This event is already in your to-do list.", null, "My ToDo", "My bad.");
   }
 }
 function searchToDo(eid) {
   // returns index of event or -1 if not found
-  var tempStr = localStorage[lsKeys.todo];
+  var tempStr = localStorage.getItem(lsKeys.todo);
   var tempArr = tempStr.split(',');
   var r = $.inArray(eid, tempArr)
   return r;
@@ -179,7 +179,7 @@ function removeToDo(eid) {
   var a = getToDo();
   if(i > -1) {
     a.splice(i, 1);
-    localStorage[lsKeys.todo] = a;
+    localStorage.setItem(lsKeys.todo, a);
     if(a.length > 0) {
       renderToDo();
     } else {
@@ -223,7 +223,7 @@ function renderToDo() {
   }
 }
 function clearToDo() {
-  localStorage[lsKeys.todo] = '';
+  localStorage.setItem(lsKeys.todo, '');
   $('#todo-list').html('');
   $('.todo-empty').show();
   $('.todo-clear').hide();
@@ -311,10 +311,10 @@ function init(useLocalStorage) {
   resizeStyles();
 
   if(useLocalStorage) {
-    Model.events = JSON.parse(localStorage[lsKeys.events]);
-    Model.guests = JSON.parse(localStorage[lsKeys.guests]);
+    Model.events = JSON.parse(localStorage.getItem(lsKeys.events));
+    Model.guests = JSON.parse(localStorage.getItem(lsKeys.guests));
   }
-
+  
   // caching ye olde selectors
   DomCache.$eventDetail = $('#event-detail');
   DomCache.$eventDetailContent = $('#event-detail-content');
@@ -415,8 +415,7 @@ function init(useLocalStorage) {
     $.ajax({
       url: 'http://'+RootDomain+'/feedback',
       method: 'GET',
-      dataType: 'jsonp',
-      jsonp: 'callback',
+      dataType: 'json',
       data: {
         content : content,
         meta    : meta,
@@ -452,7 +451,7 @@ function dataLoadError() {
 }
 
 function loadAppData(callback) {
-  console.log('Loading new data from server'); 
+  console.log('Loading new data from server');
   var ts = Math.round((new Date()).getTime() / 1000);
   Model.events = null;
   Model.guests = null;
@@ -462,9 +461,9 @@ function loadAppData(callback) {
     dataType: 'json',
     success: function(data) {
       Model.events = data;
-      localStorage[lsKeys.events] = JSON.stringify(Model.events);
+      localStorage.setItem(lsKeys.events, JSON.stringify(Model.events));
       if(Model.guests) {
-        localStorage[lsKeys.lastUpdate] = ts;
+        localStorage.setItem(lsKeys.lastUpdate, ts);
         callback.call();
       }
     }
@@ -475,9 +474,9 @@ function loadAppData(callback) {
     dataType: 'json',
     success: function(data) {
       Model.guests = data;
-      localStorage[lsKeys.guests] = JSON.stringify(Model.guests);
+      localStorage.setItem(lsKeys.guests, JSON.stringify(Model.guests));
       if(Model.events) {
-        localStorage[lsKeys.lastUpdate] = ts;
+        localStorage.setItem(lsKeys.lastUpdate, ts);
         callback.call();
       }
     } 
@@ -488,27 +487,29 @@ $(function() {
   console.log("Waiting for device");
   document.addEventListener("deviceready", function() {
 
-    console.log("Device ready!");
+    $('#loading').find('p').text("Device ready!");
 
-    if(localStorage[lsKeys.todo] == null) {
-      localStorage[lsKeys.todo] = '';
+    if(localStorage.getItem(lsKeys.todo) == null) {
+      localStorage.setItem(lsKeys.todo, '');
     }
-    if(navigator.network) {
+    
+    if(navigator && navigator.connection) {
       // Phonegap is running, try to get connection
-      var nw = navigator.network.connection.type;
+      var nw = navigator.connection.type;
 
       if(nw == Connection.WIFI || nw == Connection.CELL_3G || nw == Connection.CELL_4G) {
         // Got a connection - check for updates
-        console.log("Checking for updates...");
+        $('#loading').find('p').text("Checking for updates...");
         $.ajax({
           url: 'http://'+RootDomain+'/api/'+Model.cid,
           method: 'GET',
           dataType: 'json',
           success: function(resp) {
-            if(resp.UpdateUT > localStorage[lsKeys.lastUpdate]) {
+            if(!(localStorage.getItem(lsKeys.lastUpdate)) || resp.UpdateUT > localStorage.getItem(lsKeys.lastUpdate)) {
               $('#loading').find('p').text('New updates found! Downloading...');
               loadAppData(init);
             } else {
+              $('#loading').find('p').text('New updates found! Downloading...');
               init(true);
             }
           },
@@ -518,7 +519,8 @@ $(function() {
         });
       } else {
         // Phonegap is running, but no network - can't check for updates
-        if(localStorage[lsKeys.events] && localStorage[lsKeys.guests]) {
+        if(localStorage.getItem(lsKeys.events) && localStorage.getItem(lsKeys.guests)) {
+          $('#loading').find('p').text("No network available. Loading from cache.");
           init(true);
         } else {
           //loadAppData(init);
