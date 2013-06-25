@@ -497,7 +497,7 @@ $(function() {
       // Phonegap is running, try to get connection
       var nw = navigator.connection.type;
 
-      if(nw == Connection.WIFI || nw == Connection.CELL_3G || nw == Connection.CELL_4G) {
+      if(nw == Connection.WIFI || nw == Connection.CELL_3G || nw == Connection.CELL_4G || nw == Connection.CELL_2G || nw == Connection.CELL) {
         // Got a connection - check for updates
         $('#loading').find('p').text("Checking for updates...");
         $.ajax({

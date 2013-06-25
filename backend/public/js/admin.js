@@ -155,7 +155,11 @@ $(function() {
       dataType: 'json',
       type: 'POST',
       success: function(resp) {
-        window.location.reload();
+        if(resp.success) {
+          window.location.reload();
+        } else {
+          alert("Sorry, there was an error saving data.");
+        }
       },
       error: function() {
       }
@@ -232,7 +236,11 @@ $(function() {
       dataType: 'json',
       type: 'POST',
       success: function(resp) {
-        window.location.reload();
+        if(resp.success) {
+          window.location.reload();
+        } else {
+          alert("Sorry, there was an error saving data.");
+        }
       },
       error: function() {
       }

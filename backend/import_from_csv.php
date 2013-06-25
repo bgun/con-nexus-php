@@ -68,7 +68,7 @@ while (!feof($fp)) {
   echo "1";
 	$i++;
 
-  $delimiter = ",";
+  $delimiter = "|";
   $data = fgetcsv($fp, 2048, $delimiter);
 	$dateFormat = 'Y/m/d G:i:s';	
 	
