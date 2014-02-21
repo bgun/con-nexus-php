@@ -23,7 +23,7 @@
       <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'events'); ?>">Events</a></li>
       <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'guests'); ?>">Guests</a></li>
       <li><a href="<?php echo url_for('admin', $convention["ConventionID"], 'feedback'); ?>">Feedback</a></li>
-      <li><button class="button-update">Push Updates to Mobile Apps</button></li>
+      <li><button class="button-update" data-convention-id="<?php echo $convention["ConventionID"]; ?>">Push Updates to Mobile Apps</button></li>
     </ul>
   </nav>
   <?php endif; ?>
